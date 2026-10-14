@@ -162,9 +162,18 @@ node tests/h5-structure.test.js   # 结构层 6 项
 铜钱正面是 `assets/coin-qianlong-front.png`（256×256，94KB，
 上乾→下隆→右通→左寶，方孔为 alpha=0 真镂空）。
 
-生成脚本在项目根 `_preview/make_coin_png.py`：把 ImageGen 产出的
+背面是 `assets/coin-back.png`（256×256，40KB，2026-10-14 新增）：
+中孔两侧的真实满文「ᠪᠣᠣ（宝）/ ᠴᡳᠣᠸᠠᠨ（泉）」竖排局名，
+盘面取色与外廓高光**直接采样正面的实测值**，两面受光方向一致、像同一枚钱；
+方孔同为 alpha=0 真镂空，孔宽 20.7% 直径（正面 21.1%）。
+
+生成脚本在 `_preview/coin_back_work/`：`build_back.py` 是主脚本
+（HarfBuzz 竖排整形满文字形 → resvg 栅格化字形 mask → Pillow 画铜面并雕刻），
+配套 `front_rim_table.json`（正面外廓按 360 角度×3 半径的采样表）。
+前端 PNG 的抠图脚本在项目根 `_preview/make_coin_png.py`：把 ImageGen 产出的
 白底图按**纯亮度判据**抠成透明背景（饱和在这个图上不是可靠判据，
 已弃用），并做反预乘去白边。亮度阈值是实测值：钱体最亮 min-channel=153，
 背景最低=222，方孔≈251 → 中轴 178，软 ramp 155→200。
 
-`assets/` 下的 `coin-face.png` 等 4 个旧 PNG 仅作回滚备份保留，不再引用。
+`assets/` 下的 `coin-face.png`、`coin-face-96.png`、`coin-back-96.png`
+等旧 PNG 仅作回滚备份保留，不再引用。

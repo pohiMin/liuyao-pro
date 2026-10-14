@@ -46,38 +46,28 @@
       <!-- 盘下中场：铜钱落定区（盘内放不下三枚钱，几何见 page-divine.js 注释） -->
       <div class="mid-field"></div>
 
-      <!-- 三枚铜钱：PNG 素材正面 + CSS 扁平背面（2026-10-13 由纯 CSS 改为 PNG）
+      <!-- 三枚铜钱：正背两面都是 PNG 素材（2026-10-14 背面由 CSS 弧纹改为 PNG）
            结构说明：
              .coin-flip   ← JS 控制 rotateY 翻转（page-divine.js 不动）
                ├ .cf-face  正面：乾隆通宝 PNG（assets/coin-qianlong-front.png）
-               └ .cf-back  背面：扁平铜底 + 抽象弧纹
-           两面都靠 backface-visibility 切换；正背形状不同（文字 vs 弧纹），
+               └ .cf-back  背面：满文宝泉 PNG（assets/coin-back.png）
+           两面都靠 backface-visibility 切换；正背形状不同（四个汉字 vs 两列满文），
            色盲用户也能分辨翻没翻面。
 
-           PNG 自带镂空方孔（alpha=0），抛到盘内任何底色都不会露白，
-           所以正面不再需要 .cf-hole / .cf-w —— 再叠一层就是双重绘制，
-           孔位和字位都会跟 PNG 错开。
-           背面仍是 CSS 画的，.cf-hole 必须保留。 -->
+           两张 PNG 都自带镂空方孔（alpha=0），抛到盘内任何底色都不会露白，
+           所以不需要 .cf-hole —— 再叠一层就是双重绘制，孔位和字位都会跟 PNG 错开。
+           背面 PNG 的盘面取色与外廓高光按正面实测值生成，翻面像同一枚钱。 -->
       <div class="coin" id="c0"><div class="coin-flip">
         <div class="cf-face"><img src="assets/coin-qianlong-front.png" alt="乾隆通宝"></div>
-        <div class="cf-back">
-          <span class="cf-arc a1"></span><span class="cf-arc a2"></span><span class="cf-arc a3"></span>
-          <span class="cf-hole"></span>
-        </div>
+        <div class="cf-back"><img src="assets/coin-back.png" alt="满文宝泉"></div>
       </div></div>
       <div class="coin" id="c1"><div class="coin-flip">
         <div class="cf-face"><img src="assets/coin-qianlong-front.png" alt="乾隆通宝"></div>
-        <div class="cf-back">
-          <span class="cf-arc a1"></span><span class="cf-arc a2"></span><span class="cf-arc a3"></span>
-          <span class="cf-hole"></span>
-        </div>
+        <div class="cf-back"><img src="assets/coin-back.png" alt="满文宝泉"></div>
       </div></div>
       <div class="coin" id="c2"><div class="coin-flip">
         <div class="cf-face"><img src="assets/coin-qianlong-front.png" alt="乾隆通宝"></div>
-        <div class="cf-back">
-          <span class="cf-arc a1"></span><span class="cf-arc a2"></span><span class="cf-arc a3"></span>
-          <span class="cf-hole"></span>
-        </div>
+        <div class="cf-back"><img src="assets/coin-back.png" alt="满文宝泉"></div>
       </div></div>
     </div>
 

@@ -390,9 +390,10 @@ body { overscroll-behavior-y: none; }
 }
 .cf-back { transform: rotateY(180deg); }
 
-/* ---------- 币面底色 ----------
-   2026-10-13：正面改为 PNG 素材（assets/coin-qianlong-front.png），
-   这里的底色只是「图片加载失败」的兜底，正常情况被 img 完全盖住。
+/* ---------- 币面底色（仅「图片加载失败」兜底） ----------
+   2026-10-14：正背两面都改成 PNG 素材了（正面 coin-qianlong-front.png，
+   背面 coin-back.png），正常情况被 img 完全盖住，这层底色只在图片
+   加载失败时露出来，避免出现「没有钱体、只剩一个孔」的空洞。
 
    为什么不再用 conic 七段金属切面（2026-10-12 的方案）：
    ① 质感统一 —— PNG 是扁平暖铜，conic 是亮金高光，翻面像换了枚钱；
@@ -403,61 +404,22 @@ body { overscroll-behavior-y: none; }
 .cf-face, .cf-back {
   background: radial-gradient(circle at 38% 30%, #b47848 0%, #a86c3c 48%, #6c4830 100%);
 }
-/* 外廓 + 内廓只有背面需要：正面这些 PNG 自带，再画一圈就是双重描边。
-   背面是纯 CSS 画的，没有 PNG 那道暗边，必须补上才有「钱」的厚度。 */
-.cf-back {
-  box-shadow:
-    inset 0 0 0 2.5px rgba(40,26,14,.92),
-    inset 0 0 0 3.5px rgba(232,200,119,.28),
-    0 2px 6px rgba(0,0,0,.55);
-}
-/* 方孔：真实透空，颜色必须等于 body 背景 #0e0c0a。
-   写成实色而非 transparent —— transparent 会透出 .coin-flip 以至盘面，
-   在 mid-field 上是 #0e0c0a，但铜钱被抛出/落定的瞬间位置在盘内，
-   那时透出的是盘面色，会闪。固定用 #0e0c0a 保证任何位置都一致。
+/* 外廓、内廓、方孔全部由两张 PNG 自带（alpha=0 真镂空）。
+   2026-10-14 起删掉了这里的 .cf-back box-shadow，以及 .cf-hole / .cf-arc ——
+   那些只在「背面是纯 CSS 画的」时才需要补齐，PNG 自带再画一圈就是双重描边。 */
+/* 方孔已由 PNG 自带（alpha=0 真镂空），2026-10-14 删掉 .cf-hole。
+   历史备忘（若将来要改回纯 CSS 背面）：
+   孔色必须写成实色 #0e0c0a 而非 transparent —— transparent 会透出
+   .coin-flip 以至盘面，在 mid-field 上是 #0e0c0a，但铜钱被抛出/落定的
+   瞬间位置在盘内，那时透出的是盘面色，会闪。
+   孔的内廓不要用 ::before 垫金环：z-index:-1 沉不出去（.cf-hole 自带
+   z-index:3 建了层叠上下文），金环会画在孔上方，把透空的孔糊成半透明棕块。 */
 
-   两道 box-shadow 就是孔的「内廓」：
-     inset 亮线 = 孔内侧受光的一圈
-     外扩暗线 = 孔边缘投影，制造厚度
-   不要再用 ::before 垫金环做内廓 —— 试过三轮都失败：
-   z-index:-1 沉不出去（.cf-hole 自带 z-index:3 建了层叠上下文），
-   结果金环画在孔上方，把透空的孔糊成半透明棕块。
-
-   2026-10-13 起只服务背面：正面的孔由 PNG 自带（alpha=0 真镂空），
-   不再需要这一层。27% 是照背面 CSS 圆的尺寸定的，与 PNG 的 21.8% 不同源，
-   但正反两面孔大小略有差异看不出来，不值得为对齐去改 PNG。 */
-.cf-hole {
-  position: absolute; left: 50%; top: 50%;
-  width: 27%; height: 27%;
-  transform: translate(-50%,-50%);
-  background: #0e0c0a;
-  box-shadow:
-    inset 0 0 0 1.5px rgba(232,200,119,.5),
-    0 0 0 1px rgba(0,0,0,.4);
-  z-index: 3;
-}
-
-/* ---------- 背面抽象弧纹（满文意象） ----------
-   三重同心：外圈细弧 + 中圈缺口弧（rotate 35deg 制造「卷」感）+ 中心实点。
-   与正面的「四个分立文字」形成形状层级的差异，色盲也能分辨。
-   纹样全部是同心圆族，铜钱被 rotate(0°/137°/274°) 任意自转后仍然协调。 */
-.cf-arc { position: absolute; border-radius: 50%; }
-.cf-arc.a1 {
-  width: 52%; height: 52%; left: 24%; top: 24%;
-  border: 1.5px solid rgba(42,31,16,.75);
-}
-.cf-arc.a2 {
-  width: 34%; height: 34%; left: 33%; top: 33%;
-  border: 2.5px solid rgba(30,21,9,.95);
-  /* 只留两条边，形成「开口弧」——满文圈码的抽象意象 */
-  border-top-color: transparent;
-  border-left-color: transparent;
-  transform: rotate(35deg);
-}
-.cf-arc.a3 {
-  width: 20%; height: 20%; left: 40%; top: 40%;
-  background: rgba(30,21,9,.9);
-}
+/* 背面抽象弧纹（满文意象）已于 2026-10-14 删除：背面换成
+   assets/coin-back.png（真实满文宝泉竖排局名），不再需要 CSS 弧纹。
+   历史备忘：原方案是三重同心（外圈细弧 + 中圈缺口弧 rotate 35deg 制造「卷」感
+   + 中心实点），与正面的「四个分立文字」形成形状层级差异，色盲也能分辨；
+   纹样全是同心圆族，铜钱被 rotate(0°/137°/274°) 任意自转后仍然协调。 */
 
 /* ==================================================================
    起卦页 · 六爻记录条
