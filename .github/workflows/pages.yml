@@ -1,0 +1,41 @@
+name: Deploy H5 to GitHub Pages
+
+# 每次推到 main / h5 分支就把 h5/ 目录部署为 Pages 站点。
+# 用 Actions 而不是「Deploy from a branch」，是因为分支部署只认仓库根 / 或 /docs，
+# 不认 h5/ 这种子目录 —— Actions 的 upload-pages-artifact 可以指定任意目录作为站点根。
+on:
+  push:
+    branches: [main, h5]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同时跑两个部署会互相抢环境，排队并取消上一个
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact (h5/ 作为站点根)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./h5
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

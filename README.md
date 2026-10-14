@@ -5,6 +5,7 @@
 **纯静态 H5**：无后端、无数据库、无构建、无第三方依赖，把 `h5/` 目录扔到任何静态服务器就能跑。
 
 - 线上地址：https://liuyao-pro.app.workbuddy.host/
+- GitHub Pages：https://pohiMin.github.io/liuyao-pro/ （需先在仓库 Settings → Pages 里把 Source 设为 GitHub Actions）
 - 应用代码：`h5/`
 
 ## 本地运行
@@ -39,6 +40,19 @@ cd h5
 node tests/engine-port.test.js    # 算法层 18 项
 node tests/h5-structure.test.js   # 结构层 6 项
 ```
+
+## GitHub Pages
+
+`.github/workflows/pages.yml` 会在推送到 `main` / `h5` 分支时把 `h5/` 目录部署为 Pages 站点。
+
+用 Actions 而不是「Deploy from a branch」，是因为分支部署只认仓库根 `/` 或 `/docs`，
+不认 `h5/` 这种子目录。站点内三页跳转与资源引用全是相对路径，子路径托管没问题。
+
+首次启用：仓库 Settings → Pages → Source 选 **GitHub Actions**。
+
+注意两点：
+- Pages 站点是对外公开的，拿到网址就能访问（不要求登录 GitHub），即使仓库是私有
+- 私有仓库开 Pages 需要 GitHub Pro / Team / Enterprise；Free 计划只有公开仓库能用
 
 ## 约定
 
