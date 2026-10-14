@@ -1,0 +1,1019 @@
+/* 六爻 pro · H5 版全局样式
+ * ------------------------------------------------------------------
+ * 盘面几何是唯一基准：_preview/CSS重画八卦盘-效果预览.html
+ * H5 没有 WXSS 的限制（伪元素、CSS 变量、conic-gradient、clip-path 都可用），
+ * 所以这里可以1:1 复刻基准，不做任何缩水适配。
+ *
+ * 已定三项（用户确认）：卦序=后天 · 底纹=纯几何 · 文字随盘旋转
+ */
+
+/* ---------- reset ---------- */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  /* 字体放大是用户的无障碍设置，不能锁死 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0e0c0a;
+  color: #e8e0d2;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+               "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* iOS 横屏时页面会横向溢出，禁止横向滚动 */
+  overflow-x: hidden;
+}
+
+body { overscroll-behavior-y: none; }
+
+/* 触摸设备上 :hover 会「粘住」，按钮只在点击时反馈 */
+@media (hover: hover) {
+  .btn:hover { filter: brightness(1.08); }
+}
+
+/* ---------- 布局 ---------- */
+/* 宽度必须用 width:100% + max-width，不能只写 max-width：
+   只写 max-width 时，flex/grid 子项的 min-content 会把容器撑到 480px，
+   430px 视口下整页横向溢出，右侧内容被裁掉。
+   padding 用 env(safe-area-inset-*) 避开刘海屏与底部 Home 指示条；
+   env() 在不支持的环境里返回 0，故加 calc 兜底。 */
+.page {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding:
+    calc(14px + env(safe-area-inset-top, 0px))
+    calc(12px + env(safe-area-inset-right, 0px))
+    calc(48px + env(safe-area-inset-bottom, 0px))
+    calc(12px + env(safe-area-inset-left, 0px));
+}
+
+.panel {
+  background: #241e17;
+  border: 1px solid #3d342a;
+  border-radius: 16px;
+  padding: 12px 13px 16px;
+  margin-bottom: 12px;
+  /* grid 子项默认 min-width:auto，长内容（卦辞、爻辞）会撑破面板 */
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.block-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8c877;
+  letter-spacing: 2px;
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #3a3128;
+}
+
+.tip {
+  font-size: 12px;
+  color: #9a8b76;
+  line-height: 1.7;
+  margin-top: 10px;
+}
+.tip.warn { color: #d9a441; }
+
+/* ---------- 按钮 ---------- */
+/* 按钮组：等分并排。此时 flex 才生效 */
+.btn-row { display: flex; gap: 8px; margin-top: 14px; }
+.btn-row .btn { flex: 1 1 0; }
+/* 按钮基底。
+   注意：不要在这里写 flex —— flex 属性只在 .btn-row（display:flex）里有意义，
+   但它会带着 flex-basis 泄漏到非 flex 容器（.roll/.ghost）里，
+   与 width:100% 叠加后算出超宽尺寸，按钮就会溢出容器右边界。
+   宽度一律交给各自的规则处理：按钮组用 flex:1，单个按钮用 width:100%。 */
+.btn {
+  min-width: 0;
+  box-sizing: border-box;
+  max-width: 100%;
+  /* 高度不低于 44px：iOS HIG 的最小可点区域，
+     手指命中的实际范围要比视觉高度更大才好按。 */
+  min-height: 46px;
+  padding: 11px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 160ms, transform 120ms;
+}
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .5; cursor: default; }
+.btn-primary { background: #c9a24a; color: #241e17; }
+.btn-ghost { background: transparent; border: 1px solid #4a3e30; color: #a89880; }
+
+/* ==================================================================
+   起卦页 · 八卦盘
+   几何参数来自基准页实测（用户截图换算，盘面 300px 基准）：
+     R  = 88   爻画符号所在半径
+     RL = 122  文字标注所在半径
+   —— 这两个值是「相对盘面半径的比例」，不是绝对 px。
+   --disc-d 与 --s 由 page-divine.js 的 fitDisc() 按视口算出（268~340px），
+   所有几何再按 --s 缩放，这样 360px 的安卓小屏也放得下。
+   基准 300px 时 --s=1，几何与基准完全一致 —— 已定的视觉效果不变。
+
+   这里给默认值（300px / 1）：万一 JS 没执行，盘面也不会塌掉。
+   ================================================================== */
+:root {
+  --disc-d: 300px;
+  --s: 1;
+}
+.stage {
+  position: relative;
+  /* 高度 = 盘面 + 盘下中场（铜钱落地区）+ 上下留白，随盘面一起缩放 */
+  height: calc((var(--disc-d) + 120px));
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4px;
+  /* 舞台宽度锁到内容宽：.disc 设了 flex:none 会按自身 width 走，
+     父容器若比它窄就会溢出。这里让舞台自己也不超过可用宽度。 */
+  width: 100%;
+  max-width: var(--disc-d);
+  margin: 0 auto;
+}
+
+/* 盘下中场的分隔线与落地区 */
+.mid-field {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--disc-d) + 14px);
+  width: calc(260px * var(--s));
+  height: calc(92px * var(--s));
+  margin-left: calc(-130px * var(--s));
+  border-top: 1px dashed #3a3128;
+}
+.mid-field::before {
+  content: '铜钱落定';
+  position: absolute; left: 0; top: -17px;
+  font-size: 10.5px; color: #7a6d5c; letter-spacing: 3px;
+}
+
+.disc {
+  position: relative;
+  width: var(--disc-d);
+  height: var(--disc-d);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: polygon(29.3% 0, 70.7% 0, 100% 29.3%, 100% 70.7%,
+                     70.7% 100%, 29.3% 100%, 0 70.7%, 0 29.3%);
+  background: #1c1815;
+  /* 旋转的 .sheen 会在布局上把 body 撑宽（视觉上clip-path 已裁掉，
+     但布局溢出计算不看 clip-path，部分安卓浏览器会出横向滚动条）。
+     这里显式裁掉溢出，双保险。 */
+  overflow: hidden;
+}
+
+/* ==================================================================
+   边缘动效（方案 C：多层流转 + 呼吸 + 摇卦脉冲）
+   ------------------------------------------------------------------
+   为什么是三层而不是一层：单层匀速转边缘会显得「死」。
+   三层用不同速度 + 中层反向，转起来是「流转」而不是整块僵硬旋转；
+   再叠一层径向呼吸让整体有起伏。
+     e1  9s   正转  内侧快光带
+     e2  17s  反转  外侧慢光带（与 e1 反向，产生交织）
+     e3  4.6s 呼吸  径向明暗 + 极轻微缩放
+   摇卦时 .edge 加 .roll：三层提速到 1.05s / 1.9s / 1.1s 并提亮，落爻后恢复。
+
+   A4 八边金边流光（.oct-line::before）已于 2026-10-12 取消 —— 用户反馈金边
+   已有静态渐变，再加一道绕行流光显得花。现在金边是纯静态的，
+   摇卦时的提亮反馈只由 .edge 三层承担。
+
+   亮度已于 2026-10-12 增强（原 e1 .26 / e2 .16 / e3 .13 偏暗，用户反馈看不清）：
+     e1 峰值 .26 → .52   颜色 #e8c877 → #ffe496
+     e2 峰值 .16 → .34
+     e3 峰值 .13 → .28   呼吸下限 opacity .55 → .70（原来最暗时几乎看不见）
+   调参只需改这几处 alpha，不要动 animation-*（那三行管速度与相位）。
+
+   全部用 transform + opacity（合成层，不触发重排）。
+   contain:paint 必写 —— 旋转层的 getBoundingClientRect 会大于盘面，
+   父级 clip-path 只管视觉裁剪、不参与布局溢出计算，
+   不加会让部分安卓浏览器出横向滚动条（.sheen 时代的老问题）。
+   ================================================================== */
+.edge {
+  position: absolute; left: 0; top: 0;
+  width: var(--disc-d); height: var(--disc-d);
+  contain: paint;
+}
+.edge > div {
+  position: absolute; left: 0; top: 0;
+  width: var(--disc-d); height: var(--disc-d);
+  will-change: transform, opacity;
+  transition: filter 300ms;   /* 摇卦结束平滑恢复 */
+}
+/* 内圈快光带 —— 正转 */
+.e1 {
+  background: conic-gradient(from 0deg,
+    rgba(201,162,74,0) 0deg,
+    rgba(255,228,150,.52) 40deg,
+    rgba(201,162,74,0) 82deg,
+    rgba(201,162,74,0) 360deg);
+  animation: edge-spin 9s linear infinite;
+}
+/* 外圈慢光带 —— 反转，与内圈交织 */
+.e2 {
+  background: conic-gradient(from 180deg,
+    rgba(201,162,74,0) 0deg,
+    rgba(232,200,119,.34) 62deg,
+    rgba(201,162,74,0) 128deg,
+    rgba(201,162,74,0) 360deg);
+  animation: edge-spin 17s linear infinite reverse;
+}
+/* 径向呼吸 —— 让整体有起伏，不再是死转 */
+.e3 {
+  background: radial-gradient(circle at 50% 50%,
+    rgba(255,228,150,0) 50%,
+    rgba(255,228,150,.28) 68%,
+    rgba(232,200,119,0) 80%);
+  animation: edge-breathe 4.6s ease-in-out infinite;
+}
+@keyframes edge-spin { to { transform: rotate(360deg); } }
+@keyframes edge-breathe {
+  0%, 100% { opacity: .70; transform: scale(.99); }
+  50%      { opacity: 1;   transform: scale(1.005); }
+}
+
+/* 摇卦中：提速 + 提亮。改成 .edge.roll 而不是给子元素加类，
+   因为 .roll 要同时控制三层和八边金边的流光。 */
+.edge.roll .e1 { animation-duration: 1.05s; filter: brightness(1.45) saturate(1.25); }
+.edge.roll .e2 { animation-duration: 1.9s;  filter: brightness(1.35); }
+.edge.roll .e3 { animation-duration: 1.1s;  opacity: 1; }
+/* 八边形金边 + 内盘 */
+.oct-line {
+  position: absolute;
+  left: calc(6px * var(--s)); top: calc(6px * var(--s));
+  width: calc(288px * var(--s)); height: calc(288px * var(--s));
+  clip-path: polygon(29.3% 0, 70.7% 0, 100% 29.3%, 100% 70.7%,
+                     70.7% 100%, 29.3% 100%, 0 70.7%, 0 29.3%);
+  background: linear-gradient(160deg,
+    rgba(201,162,74,.55), rgba(201,162,74,.12) 45%, rgba(201,162,74,.42));
+}
+/* 内盘盖在金边内缘之上，只露出金边那一圈 */
+.oct-in { position: relative; z-index: 1; }
+.oct-in {
+  position: absolute;
+  left: calc(3px * var(--s)); top: calc(3px * var(--s));
+  width: calc(282px * var(--s)); height: calc(282px * var(--s));
+  clip-path: polygon(29.3% 0, 70.7% 0, 100% 29.3%, 100% 70.7%,
+                     70.7% 100%, 29.3% 100%, 0 70.7%, 0 29.3%);
+  background: #1c1815;
+}
+
+/* ---------- 爻画符号 ----------
+   爻线长 34、厚 5、中心间距 9.3 → 行间隙 4（全部为截图实测值）
+   暗态色 #6b5a42 对比度 2.66:1，点亮 #e8c877 对比度 10.88:1
+   —— 不要改回更暗的颜色，真机盘面上会完全看不见。          */
+.gw {
+  position: absolute; left: 50%; top: 50%;
+  width: calc(48px * var(--s)); height: calc(36px * var(--s));
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: calc(4px * var(--s));
+}
+.yl { display: flex; gap: calc(5px * var(--s)); }
+.yb {
+  height: calc(5px * var(--s));
+  border-radius: calc(2px * var(--s));
+  background: #6b5a42;
+  transition: background 420ms;
+}
+.yb.y { width: calc(34px * var(--s)); }
+.yb.n { width: calc(14px * var(--s)); }
+.gw.hi  .yl .yb { background: #e8c877; }
+.gw.pulse .yl .yb { background: #f0dfae; }
+
+/* ---------- 方位文字（随盘旋转，罗盘式） ---------- */
+.lbl {
+  position: absolute; left: 50%; top: 50%;
+  width: calc(46px * var(--s));
+  text-align: center; line-height: 1.15;
+}
+/* 字号下限 11px：iPhone SE 等小屏上 8.5px 的方位注释基本看不清，
+   而这是要读的信息（哪个方位、洛书几），不能当装饰性小字处理。 */
+.lbl b {
+  display: block; font-size: max(13px, calc(13px * var(--s))); font-weight: 600;
+  color: #c9a24a; letter-spacing: 1px;
+}
+/* 去掉洛书数后，这行只剩方位（「西南」「南」），可以放大到清晰可读。
+   下限 12px —— iPhone SE 上 11.5px 以下读着费劲。 */
+.lbl i {
+  display: block; font-style: normal;
+  font-size: max(12px, calc(12.5px * var(--s)));
+  color: #8a7a66; margin-top: 3px; letter-spacing: .5px;
+}
+.lbl.hi b { color: #f0dfae; }
+.lbl.hi i { color: #c9a24a; }
+
+/* ---------- 太极 ---------- */
+.taiji {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%,-50%);
+  width: calc(76px * var(--s)); height: calc(76px * var(--s));
+  border-radius: 50%;
+  background: linear-gradient(to right, #c9a24a 50%, #14110e 50%);
+}
+.tj-a { position: absolute; top: 0;
+        left: calc(19px * var(--s));
+        width: calc(38px * var(--s)); height: calc(38px * var(--s));
+        border-radius: 50%; background: #14110e; }
+.tj-b { position: absolute; bottom: 0;
+        left: calc(19px * var(--s));
+        width: calc(38px * var(--s)); height: calc(38px * var(--s));
+        border-radius: 50%; background: #c9a24a; }
+.tj-d1 { position: absolute;
+         top: calc(15px * var(--s)); left: calc(32px * var(--s));
+         width: calc(12px * var(--s)); height: calc(12px * var(--s));
+         border-radius: 50%; background: #c9a24a; }
+.tj-d2 { position: absolute;
+         bottom: calc(15px * var(--s)); left: calc(32px * var(--s));
+         width: calc(12px * var(--s)); height: calc(12px * var(--s));
+         border-radius: 50%; background: #14110e; }
+.tj-ring {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%,-50%);
+  width: calc(92px * var(--s)); height: calc(92px * var(--s));
+  border-radius: 50%;
+  border: 1px solid rgba(201,162,74,.30);
+}
+
+/* ---------- 铜钱（真实乾隆通宝素材） ----------
+   必须给 left/top：JS 只写 translate，不写 left/top 的话绝对定位元素
+   会退回静态位置（面板左上角），铜钱就跑出舞台了。
+   原点 = 盘下中场的中心（top:366px），不再用盘心。
+   定位只由 transform 一处负责 —— transform 的位移与 top 同时管位置，
+   叠两次会得到看似合理实则完全错位的落点。 */
+.coin {
+  position: absolute;
+  left: 50%; top: calc(var(--disc-d) + 62px);
+  width: calc(52px * var(--s)); height: calc(52px * var(--s));
+  margin-left: calc(-26px * var(--s)); margin-top: calc(-26px * var(--s));
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  will-change: transform, opacity;
+}
+.coin img {
+  width: 100%; height: 100%;
+  display: block;
+  border-radius: 50%;
+  /* 落定时的投影，让钱有重量感。
+     PNG 自带镂空方孔，drop-shadow 会按可见形状投影，孔里不会糊上阴影。 */
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,.55));
+}
+/* 翻转容器：rotateY 实现铜钱翻面 */
+.coin-flip {
+  position: relative;
+  width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  /* 翻面是 transform 动画，提前告知合成器，避免首次翻转时掉帧 */
+  will-change: transform;
+}
+/* 正背两面：都靠 backface-visibility 切换，JS 只转 .coin-flip 的 rotateY */
+.cf-face, .cf-back {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.cf-back { transform: rotateY(180deg); }
+
+/* ---------- 币面底色 ----------
+   2026-10-13：正面改为 PNG 素材（assets/coin-qianlong-front.png），
+   这里的底色只是「图片加载失败」的兜底，正常情况被 img 完全盖住。
+
+   为什么不再用 conic 七段金属切面（2026-10-12 的方案）：
+   ① 质感统一 —— PNG 是扁平暖铜，conic 是亮金高光，翻面像换了枚钱；
+   ② 性能 —— conic 渐变在部分低端 GPU 上每帧重绘，钱只有 46~59px，
+      那个尺寸下根本看不出「切面反光」，成本却照付。
+   色值不是随手写的：实测 PNG 不透明区主色 #6c4830(12.2%) / #a86c3c(7.9%)
+   / #b47848(6.4%)，径向渐变按这个区间取，只做「左上受光」一个方向。 */
+.cf-face, .cf-back {
+  background: radial-gradient(circle at 38% 30%, #b47848 0%, #a86c3c 48%, #6c4830 100%);
+}
+/* 外廓 + 内廓只有背面需要：正面这些 PNG 自带，再画一圈就是双重描边。
+   背面是纯 CSS 画的，没有 PNG 那道暗边，必须补上才有「钱」的厚度。 */
+.cf-back {
+  box-shadow:
+    inset 0 0 0 2.5px rgba(40,26,14,.92),
+    inset 0 0 0 3.5px rgba(232,200,119,.28),
+    0 2px 6px rgba(0,0,0,.55);
+}
+/* 方孔：真实透空，颜色必须等于 body 背景 #0e0c0a。
+   写成实色而非 transparent —— transparent 会透出 .coin-flip 以至盘面，
+   在 mid-field 上是 #0e0c0a，但铜钱被抛出/落定的瞬间位置在盘内，
+   那时透出的是盘面色，会闪。固定用 #0e0c0a 保证任何位置都一致。
+
+   两道 box-shadow 就是孔的「内廓」：
+     inset 亮线 = 孔内侧受光的一圈
+     外扩暗线 = 孔边缘投影，制造厚度
+   不要再用 ::before 垫金环做内廓 —— 试过三轮都失败：
+   z-index:-1 沉不出去（.cf-hole 自带 z-index:3 建了层叠上下文），
+   结果金环画在孔上方，把透空的孔糊成半透明棕块。
+
+   2026-10-13 起只服务背面：正面的孔由 PNG 自带（alpha=0 真镂空），
+   不再需要这一层。27% 是照背面 CSS 圆的尺寸定的，与 PNG 的 21.8% 不同源，
+   但正反两面孔大小略有差异看不出来，不值得为对齐去改 PNG。 */
+.cf-hole {
+  position: absolute; left: 50%; top: 50%;
+  width: 27%; height: 27%;
+  transform: translate(-50%,-50%);
+  background: #0e0c0a;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(232,200,119,.5),
+    0 0 0 1px rgba(0,0,0,.4);
+  z-index: 3;
+}
+
+/* ---------- 背面抽象弧纹（满文意象） ----------
+   三重同心：外圈细弧 + 中圈缺口弧（rotate 35deg 制造「卷」感）+ 中心实点。
+   与正面的「四个分立文字」形成形状层级的差异，色盲也能分辨。
+   纹样全部是同心圆族，铜钱被 rotate(0°/137°/274°) 任意自转后仍然协调。 */
+.cf-arc { position: absolute; border-radius: 50%; }
+.cf-arc.a1 {
+  width: 52%; height: 52%; left: 24%; top: 24%;
+  border: 1.5px solid rgba(42,31,16,.75);
+}
+.cf-arc.a2 {
+  width: 34%; height: 34%; left: 33%; top: 33%;
+  border: 2.5px solid rgba(30,21,9,.95);
+  /* 只留两条边，形成「开口弧」——满文圈码的抽象意象 */
+  border-top-color: transparent;
+  border-left-color: transparent;
+  transform: rotate(35deg);
+}
+.cf-arc.a3 {
+  width: 20%; height: 20%; left: 40%; top: 40%;
+  background: rgba(30,21,9,.9);
+}
+
+/* ==================================================================
+   起卦页 · 六爻记录条
+   ================================================================== */
+.hex {
+  display: flex; flex-direction: column-reverse;
+  align-items: center; gap: 6px;
+  margin: 4px 0 12px;
+}
+.hx { display: flex; align-items: center; gap: 8px; width: 100%; padding: 0 6px; }
+/* 11px 是「能看清」的下限。iPhone SE 上 10px 的爻位标注读起来费劲，
+   而爻位是要对照着看的信息，不是装饰。 */
+.hx .nm { font-size: 11.5px; color: #9a8b76; width: 30px; flex: none; }
+.hx .ln { flex: 1; display: flex; gap: 7px; justify-content: center; }
+.hx .mk { width: 20px; flex: none; text-align: center; }
+.hs {
+  height: 7px; border-radius: 2px;
+  background: #3d342a;
+  transition: background 400ms, width 240ms;
+}
+.hs.on { background: #c9a24a; }
+.hs.mv { background: #c0392b; }
+.hs.pending { background: #2e2820; }
+
+.dot {
+  display: inline-block; width: 9px; height: 9px;
+  border-radius: 50%; border: 1.5px solid #c0392b;
+}
+/* 动爻标记用 CSS 画交叉线，不依赖字体字形（× U+00D7 安卓缺字形） */
+.cross { position: relative; display: inline-block; width: 11px; height: 11px; }
+.cross::before, .cross::after {
+  content: ''; position: absolute; top: 5px; left: 0;
+  width: 11px; height: 1.5px; background: #c0392b;
+}
+.cross::before { transform: rotate(45deg); }
+.cross::after  { transform: rotate(-45deg); }
+
+/* ---------- 起卦页头部与状态 ---------- */
+.p-head { text-align: center; padding: 2px 0 10px; }
+.p-head b {
+  display: block; font-size: 19px; font-weight: 600;
+  color: #e8c877; letter-spacing: 3px;
+}
+.p-head span { display: block; font-size: 11px; color: #a89880; margin-top: 6px; }
+.rule {
+  width: 150px; height: 1px; margin: 11px auto 0;
+  background: linear-gradient(90deg, transparent, #8a6d2f, transparent);
+}
+
+/* 起卦页的状态文本。
+   类名不能叫 .st —— 排盘/解读页的旺衰标签也叫 .st，
+   同名规则会互相污染（min-height:38px 把标签拉成竖长块）。 */
+.stage-tip {
+  margin-top: 10px; font-size: 12.5px; color: #b5a68e;
+  line-height: 1.7; min-height: 38px;
+}
+
+/* 起卦页的整宽按钮。
+   不要写 width:100% —— 同为 button 时它与 .btn 的 flex:1 冲突，
+   在 .btn-row 里会算出比容器更宽的宽度并溢出右边界。
+   用 display:block + 100% 才稳定。 */
+.roll { display: block; width: 100%; }
+.ghost { display: block; width: 100%; margin-top: 8px; }
+
+/* 显隐统一走class，不用 inline style ——
+   inline 的 display 会盖掉上面的 display:block，两处互相打架。 */
+.hidden { display: none !important; }
+
+/* ---------- 报错条 ---------- */
+.boot-error {
+  background: #3a1d1a; border: 1px solid #8b3a34;
+  color: #f0b8b0; border-radius: 10px;
+  padding: 9px 11px; font-size: 11.5px; line-height: 1.6;
+  margin-bottom: 12px; white-space: pre-wrap;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* ---------- 成卦揭幕 ---------- */
+.reveal {
+  position: fixed; inset: 0;
+  background: rgba(20,17,14,.96);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 520ms;
+  z-index: 40; padding: 0 24px; text-align: center;
+}
+.reveal.show { opacity: 1; pointer-events: auto; }
+.reveal .gn { font-size: 30px; color: #e8c877; letter-spacing: 5px; font-weight: 600; }
+.reveal .gs { font-size: 13px; color: #a89880; letter-spacing: 1px; line-height: 1.8; }
+.reveal .seal {
+  width: 46px; height: 46px; margin-top: 6px;
+  background: #a93226; color: #f2e6c8;
+  font-size: 15px; letter-spacing: 0;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px;
+}
+.reveal .rv-btns { display: flex; gap: 10px; margin-top: 14px; }
+.reveal button {
+  min-height: 46px;
+  padding: 11px 24px; border-radius: 8px;
+  border: 1px solid #4a3e30; background: transparent;
+  color: #b5a68e; font-size: 13.5px; cursor: pointer; font-family: inherit;
+}
+
+/* ==================================================================
+   排盘页
+   ================================================================== */
+.panel-head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 12px; }
+.ph-index {
+  font-size: 12.5px; color: #c9a24a;
+  border: 1px solid #4a3e30; border-radius: 4px;
+  padding: 1px 6px; flex: none;
+}
+.ph-title { font-size: 16px; font-weight: 600; color: #e8c877; letter-spacing: 2px; }
+.ph-note  { font-size: 11.5px; color: #9a8b76; }
+
+/* 卦名头
+   原来把「上卦/下卦/世应」全塞进一个右侧块（.ph-right），
+   窄屏下世应标签一换行就把上卦信息顶掉了。现在分两行：
+     .ph-row  = 卦象小图 + 卦名 + 世应徽标
+     .ph-ba-row = 上卦 / 下卦 / 世应 干支（横向均匀分布，可换行） */
+.ph-row {
+  display: flex; align-items: center; gap: 12px;
+}
+.ph-row-txt { flex: 1; min-width: 0; }
+.ph-title-lg { font-size: 20px; font-weight: 600; color: #f0dfae; }
+.ph-sub { font-size: 11.5px; color: #9a8b76; margin-top: 4px; }
+/* 世应徽标：横排两枚，附干支（世爻/应爻的纳甲是关键信息，
+   只标「世5爻」不知道是哪个干支） */
+.ph-sy {
+  flex: none; display: flex; gap: 5px; flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.ph-ba-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 11px; padding-top: 10px;
+  border-top: 1px dashed #3a3128;
+}
+.ph-ba-item {
+  display: flex; align-items: baseline; gap: 5px;
+  font-size: 11.5px; color: #b0a28c;
+  background: #2a241c; border-radius: 6px;
+  padding: 4px 9px;
+  min-width: 0;
+}
+.ph-ba-item b {
+  font-weight: 400; font-size: 10.5px; color: #8a7a66;
+  flex: none;
+}
+.ph-ba-item i { font-style: normal; color: #7d6f5f; font-size: 10.5px; }
+
+.tag-shi, .tag-ying {
+  display: inline-block; font-size: 11.5px;
+  border-radius: 4px; padding: 2px 7px; letter-spacing: .5px;
+  white-space: nowrap;
+}
+.tag-shi { background: #3a2d1a; color: #e8c877; border: 1px solid #6b5528; }
+.tag-ying { background: #1d2a24; color: #7fc9a0; border: 1px solid #2f5643; }
+
+/* 卦象小图（CSS 爻画，不用 U+4DC0 符号 —— 安卓缺字形会显示方框）
+   阳爻/阴爻必须一眼可辨：两者等宽（42px），靠断口区分。
+   .gl-part 一定要 flex:none —— 否则被 flex 容器压扁，两段贴死成整条，
+   像素实测会看到「6 条全是阳爻、断口 0」。 */
+.gua-box {
+  display: flex; flex-direction: column-reverse;
+  gap: 4px; flex: none; width: 46px;
+}
+.gl {
+  display: flex; align-items: center; justify-content: center;
+  height: 7px; flex: none;
+}
+.gl-yang {
+  width: 42px; height: 6px; flex: none;
+  border-radius: 1.5px; background: #c9a24a;
+}
+.gl-yin {
+  display: flex; gap: 8px; flex: none;
+  width: 42px; height: 6px;
+}
+.gl-part {
+  width: 17px; height: 6px; flex: none;
+  border-radius: 1.5px; background: #c9a24a;
+}
+
+/* 卦辞 / 大象 */
+.pan-guaCi {
+  font-size: 12.5px; color: #c8bda8; line-height: 1.75;
+  margin-top: 11px; padding-top: 10px;
+  border-top: 1px dashed #3a3128;
+}
+.gc-k {
+  display: inline-block; font-size: 11px;
+  color: #c9a24a; margin-right: 7px;
+  border: 1px solid #4a3e30; border-radius: 3px;
+  padding: 1px 5px; flex: none;
+}
+
+/* ==================================================================
+   六爻表
+   ------------------------------------------------------------------
+   原来用 7 列 grid 挤在 ~300px 里，实测三处硬伤：
+     ① 「变爻」列被压成竖排单字（妻财/子/孙 各占一行）
+     ② 「状态」列里旺/相/真空/日冲/暗动 全被挤成竖长块
+     ③ 爻画（46px 整条 + 12px 动爻标记 = 58px）超出列宽，爻画被压变形
+   手机上七列并排本来就不可能读清。改成**每爻一张卡片**：
+     第一行= 爻位 + 六神 + 爻画（宽度放开，阴阳一眼可辨）+ 世应
+     第二行= 六亲 + 纳甲 + 变爻
+     第三行= 状态标签（正常横排换行）
+   ================================================================== */
+.yao-card {
+  border: 1px solid #332c24;
+  border-radius: 10px;
+  background: #211c16;
+  padding: 9px 10px 8px;
+  margin-bottom: 8px;
+}
+.yao-card.moving {
+  border-color: #6d3a34;
+  background: linear-gradient(180deg, rgba(192,57,43,.10), rgba(192,57,43,.04));
+}
+
+/* 第一行：爻位 · 六神 · 爻画 · 世应 */
+.yc-r1 {
+  display: flex; align-items: center; gap: 8px;
+}
+.yc-pos {
+  font-size: 12px; color: #c9a24a; flex: none;
+  width: 34px;
+}
+.yc-shen {
+  font-size: 11.5px; flex: none; width: 30px;
+  white-space: nowrap;
+}
+/* 爻画容器：宽度放开，爻画不再被压变形 */
+.yc-line {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 7px;
+}
+.yc-sy { flex: none; display: flex; gap: 4px; }
+
+/* 第二行：六亲 · 纳甲 · 变爻 */
+.yc-r2 {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-top: 7px; padding-top: 7px;
+  border-top: 1px dashed #38312a;
+  font-size: 12px;
+}
+.yc-qin { color: #e8dfcd; font-weight: 600; flex: none; }
+.yc-gz  { flex: none; }
+.yc-cg {
+  flex: 1; min-width: 0;
+  display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap;
+}
+.yc-cg-txt { font-size: 11.5px; }
+
+/* 动爻与变爻的关系标签：化进神/ 回头生 等 */
+.c-ctag {
+  display: inline-block; font-size: 10px;
+  color: #d9a441; border: 1px solid #6b5528;
+  border-radius: 3px; padding: 1px 4px;
+  white-space: nowrap;
+}
+
+/* 第三行：状态标签
+   align-items 必须是 flex-start —— flex 容器默认 stretch，
+   标签会被拉到跟整行同高（实测 21x38的竖长块），完全变形。 */
+.yc-r3 {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  align-items: flex-start;
+  margin-top: 7px;
+}
+.yc-r3:empty { display: none; }
+
+/* 爻画（本卦列）
+   长度是反复调出来的：
+     20px×2 → 像两个小方块，阴阳分不出
+     72px 整条 → 仍偏短（只占屏宽 18%）
+     104px 整条 → 两段各 38px + 28px 断口，阴阳一眼可辨（当前值）
+   变卦用虚线段+ 更短，与本卦明确区分。
+   .l.yin-seg 必须 flex:none —— 否则被 flex 容器压扁贴死成整条。 */
+.l { display: flex; align-items: center; }
+.l.yang {
+  width: 104px; height: 10px; flex: none;
+  border-radius: 2px; background: #c9a24a;
+}
+.l.yin {
+  gap: 28px; flex: none;
+  width: 104px; height: 10px;
+}
+.l.yin-seg {
+  width: 38px; height: 10px; flex: none;
+  border-radius: 2px; background: #c9a24a;
+}
+/* 变卦爻画：颜色更暗 + 更短，与本卦实心长条形成对比。
+   不再用 repeating-linear-gradient 做虚线 —— 1px 的渐变条纹在深色底上
+   几乎不可见（实测像一条灰线），实心短段才看得清。 */
+.l.cg-yang {
+  width: 76px; height: 8px; flex: none;
+  border-radius: 2px;
+  background: #8a7a66;
+  opacity: .75;
+}
+.l.cg-yin {
+  gap: 24px; flex: none;
+  width: 76px; height: 8px;
+}
+.l.cg-yin-seg {
+  width: 26px; height: 8px; flex: none;
+  border-radius: 2px; background: #8a7a66;
+  opacity: .75;
+}
+
+/* 极窄屏（≤372px）：爻画收一档，保证整行不挤出容器 */
+@media (max-width: 372px) {
+  .l.yang, .l.yin { width: 88px; }
+  .l.yin { gap: 22px; }
+  .l.yin-seg { width: 33px; }
+  .l.cg-yang, .l.cg-yin { width: 64px; }
+  .l.cg-yin { gap: 20px; }
+  .l.cg-yin-seg { width: 22px; }
+}
+
+/* 动爻标记：紧跟爻画，○阳动 / × 阴动 */
+.mv { position: relative; width: 13px; height: 13px; flex: none; }
+.mv-o::before {
+  content: ''; position: absolute; left: 2.5px; top: 2.5px;
+  width: 8px; height: 8px; border-radius: 50%;
+  border: 1.5px solid #c0392b;
+}
+.mv-slash {
+  position: absolute; left: 0; top: 5.5px;
+  width: 13px; height: 1.5px; background: #c0392b;
+}
+.mv-s1 { transform: rotate(45deg); }
+.mv-s2 { transform: rotate(-45deg); }
+
+/* 旺衰旬空标签（排盘页/解读页）
+   只服务于 .st，不要在起卦页复用这个类名 —— 起卦页的状态文本是 .stage-tip。
+   flex:none + 固定 height：在 flex 容器里若不设，会被 stretch 拉成竖长块。 */
+.st {
+  display: inline-flex; align-items: center;
+  flex: none;
+  height: 18px;
+  font-size: 11px;
+  border-radius: 3px; padding: 0 5px;
+  line-height: 1;
+  white-space: nowrap;
+}
+.st.wang    { background: #3a2d1a; color: #f0c674; }
+.st.xiang   { background: #33291c; color: #d9b878; }
+.st.xiu     { background: #26221c; color: #9a8f7e; }
+.st.qiu     { background: #2b2118; color: #b08d5c; }
+.st.si      { background: #331c1a; color: #c98a80; }
+.st.zhenkong { background: #1d2530; color: #7fa8cc; }
+.st.jiakong  { background: #232a2e; color: #8fb0bd; }
+.st.yuepo   { background: #331c1a; color: #d97a6c; }
+.st.richong { background: #331c1a; color: #d97a6c; }
+.st.andong  { background: #2b2033; color: #b795d4; }
+
+/* 变卦 / 互错综 */
+.pan-changed { margin-top: 12px; padding-top: 11px; border-top: 1px dashed #3a3128; }
+.pc-head { display: flex; align-items: center; gap: 10px; }
+.pc-row { display: flex; align-items: center; gap: 10px; }
+.pc-name { font-size: 14px; color: #f0dfae; font-weight: 600; }
+.pc-sub  { font-size: 11.5px; color: #9a8b76; margin-top: 2px; }
+.pc-guaCi { font-size: 12px; color: #c8bda8; line-height: 1.7; margin-top: 9px; }
+
+.pan-related {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-top: 12px; padding-top: 11px; border-top: 1px dashed #3a3128;
+}
+.rel-item {
+  font-size: 11px; color: #a89880;
+  background: #2a241c; border-radius: 6px; padding: 3px 8px;
+}
+
+/* 卦体 / 时相 / 取象 */
+.gt { margin-bottom: 9px; }
+.gt-t {
+  display: inline-block; font-size: 11px; color: #e8c877;
+  background: #33291c; border-radius: 4px; padding: 1px 7px;
+  margin-bottom: 4px;
+}
+.gt-d { font-size: 12px; color: #b8ad99; line-height: 1.7; display: block; }
+
+.mt { display: flex; gap: 10px; font-size: 12px; padding: 4px 0; }
+.mt-k { color: #8a7a66; width: 46px; flex: none; }
+.mt-v { color: #c8bda8; }
+
+.ipb-li { font-size: 12px; color: #b8ad99; line-height: 1.8; }
+
+/* 神煞 */
+.ss { display: flex; gap: 8px; align-items: baseline; font-size: 12px; padding: 4px 0; }
+.ss-n { color: #e8c877; flex: none; }
+.ss-z { color: #a89880; flex: none; }
+.ss-note { color: #8a7a66; font-size: 11px; }
+
+/* ==================================================================
+   解卦页
+   ================================================================== */
+.ask-row { display: flex; align-items: center; gap: 10px; }
+.ask-label { font-size: 11.5px; color: #8a7a66; flex: 1; }
+.topic-sel {
+  display: flex; align-items: center; gap: 7px;
+  background: #2a241c; border: 1px solid #4a3e30;
+  border-radius: 8px;
+  /* 下拉选择器是可点的，触摸目标给足 44px */
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 13px; color: #e8c877; cursor: pointer;
+  font-family: inherit;
+}
+.caret {
+  width: 0; height: 0; flex: none;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #a89880;
+}
+
+.ip-top { display: flex; align-items: center; gap: 14px; }
+.ip-verdict { text-align: center; flex: none; }
+.iv-word { font-size: 27px; font-weight: 600; letter-spacing: 3px; }
+.iv-topic { font-size: 11.5px; color: #9a8b76; margin-top: 3px; }
+.v-daji .iv-word { color: #f0c674; }
+.v-ji .iv-word   { color: #d9b878; }
+.v-ping .iv-word { color: #b0a68f; }
+.v-xiaoxiong .iv-word { color: #d9927f; }
+.v-xiong .iv-word   { color: #c9705f; }
+
+.ip-score { flex: 1; }
+.is-bar {
+  height: 7px; border-radius: 4px;
+  background: #2e2820; overflow: hidden;
+}
+.is-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #a93226, #c9a24a 50%, #7fc9a0);
+  transition: width 600ms;
+}
+.is-num { font-size: 11.5px; color: #9a8b76; margin-top: 5px; }
+
+.ip-summary {
+  font-size: 12.5px; color: #c8bda8; line-height: 1.8;
+  margin-top: 13px; padding-top: 11px; border-top: 1px dashed #3a3128;
+}
+.ip-advice { font-size: 12.5px; color: #f0dfae; line-height: 1.8; margin-top: 10px; }
+
+.ipb-title {
+  display: block; font-size: 13px; font-weight: 600;
+  color: #e8c877; letter-spacing: 2px;
+  margin: 0 0 9px; padding-bottom: 7px;
+  border-bottom: 1px solid #3a3128;
+}
+.ipb-p { font-size: 12.5px; color: #b8ad99; line-height: 1.8; margin: 7px 0; }
+.ipb-p.warn { color: #d9a441; }
+
+.ysn { font-size: 12px; color: #b8ad99; line-height: 1.75; margin-top: 5px; }
+.ysn-h { color: #c9a24a; }
+
+.shirule {
+  font-size: 12px; color: #b8ad99; line-height: 1.75;
+  margin-top: 8px; padding: 8px 10px;
+  background: #2a241c; border-radius: 8px;
+}
+.shirule-h { color: #7fc9a0; margin-right: 7px; }
+
+/* 飞神/伏神两格，同样要防 stretch 拉伸 */
+.fu-grid {
+  display: flex; gap: 8px; margin: 9px 0;
+  align-items: flex-start;
+}
+.fu {
+  flex: 1; font-size: 12px; color: #c8bda8;
+  background: #2a241c; border-radius: 8px; padding: 8px 10px;
+}
+.fu-k { display: block; font-size: 11px; color: #9a8b76; margin-bottom: 3px; }
+.fu-judge { font-size: 12.5px; font-weight: 600; }
+.fu-judge.ok { color: #7fc9a0; }
+.fu-judge.no { color: #c9705f; }
+.fu-qi { font-size: 12px; color: #b8ad99; line-height: 1.75; margin-top: 8px; }
+.fu-qi-h { color: #c9a24a; margin-right: 7px; }
+.fu-need { font-size: 11px; color: #8a7a66; margin-top: 3px; }
+.fu-why { font-size: 12px; color: #b8ad99; line-height: 1.75; margin-top: 6px; }
+.fu-why-h { color: #8a7a66; margin-right: 7px; }
+
+/* 元神/忌神/仇神三格。
+   align-items:flex-start + .yj 内部 flex —— 否则格内元素被stretch 拉高变形。
+   这三个格子内容长短不一（元神可能很长），等高会更歪。 */
+.yjc-grid {
+  display: flex; gap: 7px; margin: 9px 0;
+  align-items: flex-start;
+}
+.yj {
+  flex: 1; text-align: center; font-size: 13px;
+  border-radius: 8px; padding: 9px 4px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.yj-k {
+  display: block; font-size: 11px; margin-bottom: 3px;
+  opacity: .8; flex: none; align-self: center;
+}
+.yj.yuan { background: #2b2418; color: #e8c877; }
+.yj.ji   { background: #331c1a; color: #d97a6c; }
+.yj.chou { background: #262019; color: #b0a68f; }
+.yjc-rule { font-size: 12px; color: #b8ad99; line-height: 1.75; }
+.yjc-n { font-size: 11.5px; color: #8a7a66; line-height: 1.7; margin-top: 5px; }
+.yjc-n-h { color: #c9a24a; margin-right: 7px; }
+
+/* 动爻卡片。头部是 flex 容器，标签要 flex:none 才不会被拉高 */
+.mv-card {
+  background: #2a241c; border-radius: 10px;
+  padding: 11px 12px; margin-bottom: 9px;
+}
+.mvc-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; flex-wrap: wrap;
+}
+.mvc-t { font-size: 13px; font-weight: 600; color: #e8c877; flex: none; }
+/* 动爻吉凶标签（吉/中/凶）
+   类名必须是 .jlbl —— 不能叫 .lbl：
+   起卦页八卦盘的方位文字也叫 .lbl，且那条规则带
+   `position:absolute; left:50%; top:50%`，
+   同名会把这里的标签变成绝对定位，所有标签叠到同一点压在断语上。
+   （这已是本项目第二次同类事故，上一个是 .st 被起卦页的状态文本占用。） */
+.jlbl {
+  display: inline-block; font-size: 11px;
+  border-radius: 3px; padding: 2px 7px;
+  flex: none; white-space: nowrap;
+  /* 明确复位，防止再被其他同名规则污染 */
+  position: static;
+}
+.lbl-ji   { background: #2b2418; color: #e8c877; }
+.lbl-zhong{ background: #26221c; color: #b0a68f; }
+.lbl-xiong{ background: #331c1a; color: #d97a6c; }
+.mvc-chg { font-size: 12px; color: #c8bda8; margin-top: 6px; }
+.mvc-ci  { font-size: 12px; color: #b8ad99; line-height: 1.75; margin-top: 6px; }
+.mvc-xx  { font-size: 12px; color: #8a7a66; line-height: 1.75; margin-top: 6px; }
+
+.mn { font-size: 12.5px; color: #b8ad99; line-height: 1.8; margin-top: 7px; }
+.mn-k { display: inline-block; font-size: 11px; color: #c9a24a;
+       border: 1px solid #4a3e30; border-radius: 3px; padding: 1px 5px;
+       margin-right: 7px; }
+.mn-white { color: #c8bda8; }
+
+/* ---------- 空态 ---------- */
+.empty-box {
+  background: #241e17; border: 1px solid #3d342a;
+  border-radius: 16px; padding: 40px 20px; text-align: center;
+}
+.empty-title { font-size: 16px; color: #e8c877; letter-spacing: 2px; }
+.empty-desc  { font-size: 12px; color: #8a7a66; margin-top: 8px; }
+
+/* ---------- 桌面端：两侧留白时居中显示手机宽度 ---------- */
+@media (min-width: 560px) {
+  body { background: #0a0908; }
+  .page { padding-top: 20px; }
+}

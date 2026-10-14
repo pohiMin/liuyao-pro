@@ -1,0 +1,22 @@
+# 归档 / 备份 / 中间产物：只在本地，不进仓库
+_archive/
+_backup/
+_preview/
+_tmp/
+
+# 压缩包与临时文件
+*.zip
+*.bak
+*.tmp
+
+# 依赖与环境变量
+node_modules/
+.env
+.env.*
+*.log
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

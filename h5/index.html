@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<!-- viewport-fit=cover 配合 CSS 的 env(safe-area-inset-*) 才能避开刘海屏与底部横条。
+     user-scalable 不禁用：这套盘面是信息密集型布局，缩放是有用的无障碍手段。 -->
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#0e0c0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>六爻 pro · 起卦</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page">
+
+  <div class="p-head">
+    <b>法盘铜钱六爻</b>
+    <span>太极八卦盘 · 后天八卦方位 · 乾隆通宝</span>
+    <div class="rule"></div>
+  </div>
+
+  <div class="panel">
+    <div class="stage">
+      <!-- 八卦盘：八边形金边 + 深色内盘 + 后天八卦爻画与随盘文字 -->
+      <div class="disc">
+        <!-- 边缘动效（方案C）：三层不同速度流转 + 呼吸 + 金边流光。
+            摇卦时 .edge 会被加 .roll 类，三层同时提速并提亮。
+            这三层都是纯装饰，不承载方位含义。 -->
+        <div class="edge" id="edge">
+          <div class="e1"></div>
+          <div class="e2"></div>
+          <div class="e3"></div>
+        </div>
+        <div class="oct-line"><div class="oct-in"></div></div>
+        <div id="ring"></div>
+        <div id="labels"></div>
+        <div class="tj-ring"></div>
+        <div class="taiji">
+          <div class="tj-a"></div><div class="tj-b"></div>
+          <div class="tj-d1"></div><div class="tj-d2"></div>
+        </div>
+      </div>
+
+      <!-- 盘下中场：铜钱落定区（盘内放不下三枚钱，几何见 page-divine.js 注释） -->
+      <div class="mid-field"></div>
+
+      <!-- 三枚铜钱：PNG 素材正面 + CSS 扁平背面（2026-10-13 由纯 CSS 改为 PNG）
+           结构说明：
+             .coin-flip   ← JS 控制 rotateY 翻转（page-divine.js 不动）
+               ├ .cf-face  正面：乾隆通宝 PNG（assets/coin-qianlong-front.png）
+               └ .cf-back  背面：扁平铜底 + 抽象弧纹
+           两面都靠 backface-visibility 切换；正背形状不同（文字 vs 弧纹），
+           色盲用户也能分辨翻没翻面。
+
+           PNG 自带镂空方孔（alpha=0），抛到盘内任何底色都不会露白，
+           所以正面不再需要 .cf-hole / .cf-w —— 再叠一层就是双重绘制，
+           孔位和字位都会跟 PNG 错开。
+           背面仍是 CSS 画的，.cf-hole 必须保留。 -->
+      <div class="coin" id="c0"><div class="coin-flip">
+        <div class="cf-face"><img src="assets/coin-qianlong-front.png" alt="乾隆通宝"></div>
+        <div class="cf-back">
+          <span class="cf-arc a1"></span><span class="cf-arc a2"></span><span class="cf-arc a3"></span>
+          <span class="cf-hole"></span>
+        </div>
+      </div></div>
+      <div class="coin" id="c1"><div class="coin-flip">
+        <div class="cf-face"><img src="assets/coin-qianlong-front.png" alt="乾隆通宝"></div>
+        <div class="cf-back">
+          <span class="cf-arc a1"></span><span class="cf-arc a2"></span><span class="cf-arc a3"></span>
+          <span class="cf-hole"></span>
+        </div>
+      </div></div>
+      <div class="coin" id="c2"><div class="coin-flip">
+        <div class="cf-face"><img src="assets/coin-qianlong-front.png" alt="乾隆通宝"></div>
+        <div class="cf-back">
+          <span class="cf-arc a1"></span><span class="cf-arc a2"></span><span class="cf-arc a3"></span>
+          <span class="cf-hole"></span>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="hex" id="hex"></div>
+
+    <button class="btn btn-primary roll" id="roll">摇第 1 爻</button>
+    <button class="btn btn-ghost ghost hidden" id="reset">重新起卦</button>
+
+    <div class="stage-tip" id="st">法盘已备，铜钱在手。心中默念所问之事，诚心起卦。</div>
+  </div>
+
+  <div class="panel">
+    <div class="block-title">所问何事</div>
+    <div class="ask-row">
+      <span class="ask-label">选择类别后起卦，解卦时仍可更改</span>
+      <div class="topic-sel" id="topic-sel">
+        <span id="topic-label">综合运势（看世应）</span>
+        <span class="caret"></span>
+      </div>
+    </div>
+    <select id="topic-select" style="display:none"></select>
+  </div>
+
+  <div class="tip">※ 本工具依《周易》卦爻辞、京房纳甲与《增删卜易》《卜筮正宗》规则推演，
+    属传统文化研究与自我省思参考，不作为任何决策依据。</div>
+</div>
+
+<!-- 成卦揭幕 -->
+<div class="reveal" id="reveal">
+  <div class="gn" id="gn">—</div>
+  <div class="gs" id="gs">—</div>
+  <div class="seal">卦</div>
+  <div class="rv-btns">
+    <button id="to-pan">看排盘</button>
+    <button id="again">再起一卦</button>
+  </div>
+</div>
+
+<!-- 算法层：加载顺序不可颠倒 -->
+<script src="vendor/core-data.js"></script>
+<script src="vendor/meaning-data.js"></script>
+<script src="vendor/yao-labels.js"></script>
+<script src="vendor/lunar.js"></script>
+<script src="vendor/rules.js"></script>
+<script src="vendor/engine.js"></script>
+<script src="app.js"></script>
+<script src="page-divine.js"></script>
+</body>
+</html>

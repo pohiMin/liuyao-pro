@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>六爻 pro · 区块速查表</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#faf9f7;color:#2c2c2a;
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  padding:20px 16px 60px;font-size:14px;line-height:1.6}
+.wrap{max-width:820px;margin:0 auto}
+h1{font-size:20px;font-weight:500;margin:0 0 6px;letter-spacing:1px}
+.meta{font-size:12px;color:#888780;margin-bottom:22px;line-height:1.8}
+.meta a{color:#185FA5;text-decoration:none}
+
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.nav a{padding:6px 14px;border:1px solid #d3d1c7;border-radius:999px;
+  font-size:12.5px;color:#5F5E5A;text-decoration:none;background:#fff}
+.nav a:hover{border-color:#888780}
+
+h2{font-size:16px;font-weight:500;margin:30px 0 4px;padding-bottom:8px;
+  border-bottom:2px solid #2c2c2a}
+.h2sub{font-size:12px;color:#888780;margin:0 0 14px}
+.flow{font-size:12px;color:#5F5E5A;background:#f1efe8;border-radius:8px;
+  padding:10px 12px;margin:0 0 14px;line-height:1.9;font-family:ui-monospace,monospace}
+
+table{width:100%;border-collapse:collapse;margin-bottom:8px;font-size:13px;
+  table-layout:fixed}
+th{text-align:left;font-weight:500;font-size:12px;color:#888780;
+  padding:6px 8px;border-bottom:1px solid #d3d1c7}
+td{padding:9px 8px;border-bottom:1px solid #e8e6e0;vertical-align:top;
+  word-break:break-word}
+tr:hover td{background:#f5f4f0}
+td.id{font-weight:500;color:#185FA5;white-space:nowrap;font-family:ui-monospace,monospace}
+td.nm{font-weight:500}
+td.fn{color:#5F5E5A;font-size:12.5px}
+td.cd{font-family:ui-monospace,monospace;font-size:11.5px;color:#888780;
+  word-break:break-all}
+tr.locked td{background:#fcebeb}
+tr.locked td.id{color:#A32D2D}
+tr.locked:hover td{background:#fadada}
+.lock{display:inline-block;font-size:10.5px;background:#A32D2D;color:#fff;
+  border-radius:3px;padding:1px 5px;margin-left:4px;vertical-align:1px}
+
+.note{background:#e6f1fb;border-radius:8px;padding:12px 14px;font-size:12.5px;
+  color:#0C447C;line-height:1.8;margin:16px 0}
+.note b{font-weight:500}
+.note.warn{background:#FAEEDA;color:#633806}
+.note code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:3px;
+  font-family:ui-monospace,monospace;font-size:11.5px}
+
+.hist{margin-top:8px}
+.hist td{font-size:12.5px}
+
+footer{margin-top:36px;padding-top:16px;border-top:1px solid #d3d1c7;
+  font-size:11.5px;color:#888780;line-height:1.9}
+@media(max-width:640px){
+  table{table-layout:auto}
+  th:nth-child(4),td:nth-child(4){display:none}
+  td.fn{font-size:12px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>六爻 pro · 区块速查表</h1>
+<div class="meta">
+  用途：后续要改哪一块，直接报编号（如「A3」「P2」「J10」）。<br>
+  整理时间 2026-10-12 ｜ 线上：<a href="https://liuyao-pro.app.workbuddy.host/">liuyao-pro.app.workbuddy.host</a>
+</div>
+
+<div class="nav">
+  <a href="#a">A · 起卦页（15 块）</a>
+  <a href="#p">P · 排盘页（8 块）</a>
+  <a href="#j">J · 解卦页（13 块）</a>
+  <a href="#rules">修改约定</a>
+</div>
+
+<!-- ============ A 起卦页 ============ -->
+<h2 id="a">A · 起卦页</h2>
+<p class="h2sub">index.html + page-divine.js ｜ 流程起点：选类别 → 摇六次铜钱 → 成卦揭幕 → 进排盘</p>
+<div class="flow">A13 选类别 → A11 点「摇第 1 爻」→ A9 铜钱翻转 → A8 落定 → A10 点亮一爻 → 重复 6 次 → A15 揭幕 → 进排盘页<br>（全程 A3/A4 边缘动效，A12 实时播报进度）</div>
+<table>
+<thead><tr><th style="width:46px">编号</th><th style="width:104px">名称</th>功能<th style="width:180px">代码定位</th></tr></thead>
+<tbody>
+<tr><td class="id">A1</td><td class="nm">页头标题</td><td class="fn">应用名「法盘铜钱六爻」与副标题，下方金色分隔线</td><td class="cd">.p-head</td></tr>
+<tr><td class="id">A2</td><td class="nm">八卦盘主体</td><td class="fn">八边形金边 + 深色内盘的圆盘容器，页面视觉中心。几何由 --disc-d 与 --s 两个变量控制</td><td class="cd">.disc</td></tr>
+<tr><td class="id">A3</td><td class="nm">边缘动效（三层）</td><td class="fn">e1 内圈快光带 9s 正转、e2 外圈慢光带 17s 反转、e3 径向呼吸 4.6s。摇卦时提速到 1.05s/1.9s/1.1s 并提亮。纯装饰，不承载方位含义</td><td class="cd">.edge &gt; .e1/.e2/.e3</td></tr>
+<tr><td class="id">A4</td><td class="nm">八边金边流光</td><td class="fn">沿八边形金边绕行的亮弧，6.5s 一圈；摇卦时加速到 0.8s 并提亮</td><td class="cd">.oct-line::before</td></tr>
+<tr><td class="id">A5</td><td class="nm">后天八卦爻画</td><td class="fn">八个方位的卦象爻画，自内向外为初爻到上爻。起卦中被点亮的爻变金色</td><td class="cd">#ring（生成 .gw）</td></tr>
+<tr><td class="id">A6</td><td class="nm">方位文字</td><td class="fn">每方位标注卦名与方位：离南、坤西南、兑西、乾西北、坎北、艮东北、震东、巽东南。原带洛书数 1-8，2026-10-07 已去掉</td><td class="cd">#labels（生成 .lbl）</td></tr>
+<tr><td class="id">A7</td><td class="nm">中心太极</td><td class="fn">盘心太极图（黑黄双鱼）+ 一道金色外环</td><td class="cd">.taiji + .tj-ring</td></tr>
+<tr><td class="id">A8</td><td class="nm">铜钱落定区</td><td class="fn">盘下方空白区域。三枚铜钱在盘内放不下，摇完后落在这里</td><td class="cd">.mid-field</td></tr>
+<tr><td class="id">A9</td><td class="nm">三枚铜钱</td><td class="fn">乾隆通宝素材，正背两面用 CSS 3D 翻转切换，摇卦时依次翻转</td><td class="cd">#c0 / #c1 / #c2</td></tr>
+<tr><td class="id">A10</td><td class="nm">六爻记录条</td><td class="fn">从上爻到初爻六行记录。未摇的爻显示灰色占位条，已摇的爻显示实际阴阳并点亮</td><td class="cd">.hex</td></tr>
+<tr><td class="id">A11</td><td class="nm">主操作按钮</td><td class="fn">「摇第 N 爻」主按钮，每摇一爻数字递增，摇满六爻后隐藏；下方「重新起卦」次级按钮，起卦后才出现</td><td class="cd">#roll / #reset</td></tr>
+<tr><td class="id">A12</td><td class="nm">状态提示条</td><td class="fn">当前进度文字说明，如「摇第 1 爻…」「得少阳（7，2 背）」</td><td class="cd">.stage-tip #st</td></tr>
+<tr><td class="id">A13</td><td class="nm">所问何事</td><td class="fn">问题类别下拉（综合运势、财运、事业、感情等）。起卦前选，解卦时仍可更改，不影响卦象</td><td class="cd">.topic-sel</td></tr>
+<tr class="locked"><td class="id">A14</td><td class="nm">免责声明<span class="lock">勿删</span></td><td class="fn">页面底部固定提示，说明属传统文化研究与自我省思参考。平台合规要求</td><td class="cd">.tip</td></tr>
+<tr><td class="id">A15</td><td class="nm">成卦揭幕浮层</td><td class="fn">六爻摇满后弹出的全屏遮罩，显示卦名、卦辞与「看排盘」「再起一卦」两按钮</td><td class="cd">.reveal #reveal</td></tr>
+</tbody>
+</table>
+
+<!-- ============ P 排盘页 ============ -->
+<h2 id="p">P · 排盘页</h2>
+<p class="h2sub">pan.html + page-pan.js ｜ 展示纳甲装卦结果，从「卦象」到「可断卦」的中间层</p>
+<table>
+<thead><tr><th style="width:46px">编号</th><th style="width:104px">名称</th>功能<th style="width:180px">代码定位</th></tr></thead>
+<tbody>
+<tr><td class="id">P1</td><td class="nm">卦名头</td><td class="fn">卦象小图 + 卦名（如「水风井」）+ 宫卦世应信息 + 上卦/下卦分块 + 卦辞与大象两段文字</td><td class="cd">.panel-head + .ph-row</td></tr>
+<tr><td class="id">P2</td><td class="nm">六爻装卦表</td><td class="fn">每爻一张卡片，三行结构：爻位六神爻画世应 / 六亲纳甲变爻 / 旺衰旬空状态标签。<b>排盘页信息最密的一块</b></td><td class="cd">.yao-card（共 6 张）</td></tr>
+<tr><td class="id">P3</td><td class="nm">变卦区</td><td class="fn">有动爻时显示变卦的卦象小图、卦名与卦辞</td><td class="cd">.pan-changed</td></tr>
+<tr><td class="id">P4</td><td class="nm">互卦错卦综卦</td><td class="fn">三个横排小标签，分别给出互卦、错卦、综卦的卦名</td><td class="cd">.pan-related</td></tr>
+<tr><td class="id">P5</td><td class="nm">卦体格局</td><td class="fn">伏吟、卦反吟、卦身、游魂归魂等格局判定</td><td class="cd">.gt</td></tr>
+<tr><td class="id">P6</td><td class="nm">时相</td><td class="fn">起卦时间、节气、旬空等时间要素</td><td class="cd">.mt</td></tr>
+<tr><td class="id">P7</td><td class="nm">取象</td><td class="fn">卦象与大象的取象说明</td><td class="cd">.gt-t / .gt-d</td></tr>
+<tr><td class="id">P8</td><td class="nm">神煞参看</td><td class="fn">贵人、驿马、桃花等神煞的落位情况</td><td class="cd">.ss</td></tr>
+</tbody>
+</table>
+
+<!-- ============ J 解卦页 ============ -->
+<h2 id="j">J · 解卦页</h2>
+<p class="h2sub">interpret.html + page-interpret.js ｜ 给出最终判断与行动建议，流程终点</p>
+<table>
+<thead><tr><th style="width:46px">编号</th><th style="width:104px">名称</th>功能<th style="width:180px">代码定位</th></tr></thead>
+<tbody>
+<tr><td class="id">J1</td><td class="nm">页头</td><td class="fn">「三 解卦」标题与副标题「用神取用 · 吉凶断语 · 动爻详参」</td><td class="cd">.panel-head</td></tr>
+<tr><td class="id">J2</td><td class="nm">所问何事</td><td class="fn">与起卦页同样的类别选择，此处可修改且不影响已定的卦象</td><td class="cd">.ask-row</td></tr>
+<tr><td class="id">J3</td><td class="nm">吉凶总判</td><td class="fn">大字吉凶结论（吉/平/小凶等）、所问类别、综合吉凶指数进度条与数值、一段总体摘要。<b>解卦页最核心的一块</b></td><td class="cd">.ip-top + .ip-score</td></tr>
+<tr><td class="id">J4</td><td class="nm">断语</td><td class="fn">紧随总判之后的行动建议段，如「宜暂缓、宜退守、宜调整策略后再谋」</td><td class="cd">.ip-advice</td></tr>
+<tr><td class="id">J5</td><td class="nm">用神取用</td><td class="fn">说明此卦以哪一爻为用神、该爻旺衰状态，以及是否临世、临应、动爻</td><td class="cd">.ipb-title + .ipb-li</td></tr>
+<tr><td class="id">J6</td><td class="nm">世应关系</td><td class="fn">世爻与应爻的干支五行，以及二者生克关系的解读</td><td class="cd">.ipb-p + .shirule</td></tr>
+<tr><td class="id">J7</td><td class="nm">飞伏神</td><td class="fn">用神不上卦时才显示。给出飞神、伏神、伏神是否有用的判断，以及有力与无力之处</td><td class="cd">.fu-grid + .fu-judge</td></tr>
+<tr><td class="id">J8</td><td class="nm">元神忌神仇神</td><td class="fn">三格并列，分别列出元神、忌神、仇神及其作用说明</td><td class="cd">.yjc-grid</td></tr>
+<tr><td class="id">J9</td><td class="nm">卦体格局</td><td class="fn">解卦视角的格局判定列表</td><td class="cd">.ipb-li</td></tr>
+<tr><td class="id">J10</td><td class="nm">动爻详参</td><td class="fn">每个动爻一张卡片：爻位与吉凶标签、变爻变化、该爻爻辞、象曰。无动爻时显示静卦说明</td><td class="cd">.mv-card（每动爻一张）</td></tr>
+<tr><td class="id">J11</td><td class="nm">卦象解读</td><td class="fn">卦辞白话解读，分事业、感情、健康三栏</td><td class="cd">.mn</td></tr>
+<tr><td class="id">J12</td><td class="nm">底部操作</td><td class="fn">「回看排盘」主按钮与「重新起卦」次级按钮</td><td class="cd">.btn-row</td></tr>
+<tr class="locked"><td class="id">J13</td><td class="nm">免责声明<span class="lock">勿删</span></td><td class="fn">与起卦页一致的底部合规提示</td><td class="cd">.tip</td></tr>
+</tbody>
+</table>
+
+<!-- ============ 约定 ============ -->
+<h2 id="rules">修改约定与红线</h2>
+
+<div class="note warn">
+<b>两条红线，改动前先停一下：</b><br>
+1. <b>A14 与 J13 免责声明</b> —— 本项目已无小程序版本，声明不再是平台审核要求，但占卜类内容明示「仅供文化研习与娱乐」仍是必要的自律，不要删。<br>
+2. <b>P2 与 J3 的算法字段</b> —— 这两块的数据来自 <code>vendor/engine.js</code> 与 <code>vendor/rules.js</code>。
+只改呈现样式可以，不要改数据字段本身，否则 <code>node tests/engine-port.test.js</code> 会挂。
+</div>
+
+<div class="note">
+<b>文件速查</b>：<br>
+<code>style.css</code> 三页全部样式（改动频率高）｜
+<code>page-divine.js</code> 起卦页逻辑｜
+<code>page-pan.js</code> 排盘页渲染｜
+<code>page-interpret.js</code> 解卦页渲染｜
+<code>app.js</code> 入口与卦象小图<br><br>
+<b>加载顺序</b>（颠倒会白屏）：<br>
+<code>core-data → meaning-data → yao-labels → lunar → rules → engine</code>
+</div>
+
+<h2 style="font-size:14px;border-bottom-width:1px">已改动记录</h2>
+<table class="hist">
+<thead><tr><th style="width:96px">日期</th><th style="width:88px">编号</th>改了什么<th style="width:66px">状态</th></tr></thead>
+<tbody>
+<tr><td>2026-10-07</td><td class="id">A6</td><td class="fn">去掉方位文字里的洛书数 1-8，卦名与方位文字放大</td><td>已上线</td></tr>
+<tr><td>2026-10-07</td><td class="id">A3 / A4</td><td class="fn">边缘动效从单层 rAF 旋转改为三层 CSS 动画（方案 C）</td><td>已上线</td></tr>
+<tr><td>2026-10-07</td><td class="id">P2</td><td class="fn">六爻表从七列 grid 改为每爻一张卡片；修复卦象小图阴阳爻不分</td><td>已上线</td></tr>
+<tr><td>2026-10-07</td><td class="id">J10</td><td class="fn">修复吉凶标签压在断语文字上的 bug，类名 .lbl 改为 .jlbl</td><td>已上线</td></tr>
+</tbody>
+</table>
+
+<footer>
+  这份速查表与项目根目录的 <b>区块地图-六爻pro.md</b> 内容一致，按需取用。<br>
+  后续要改哪块，直接报编号即可，例如「A3 流光太亮，调暗一点」「P2 状态标签挤一行」。
+</footer>
+
+</div>
+</body>
+</html>
