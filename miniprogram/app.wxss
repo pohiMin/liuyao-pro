@@ -1,0 +1,179 @@
+/* 共享样式：panel / panel-head / 爻画 / 状态标签 / 按钮
+ * WXSS 不支持 CSS 自定义属性（var()），故全部写为字面量。
+ * 与 Web 版 style.css 保持一致：深棕底 + 鎏金 + 朱砂。
+ */
+
+page {
+  background: #14110e;
+  color: #ece4d8;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+}
+
+.page {
+  padding: 0 24rpx 60rpx;
+  box-sizing: border-box;
+}
+
+/* ---------- 面板 ---------- */
+.panel {
+  background: #241e17;
+  border: 1rpx solid #3d342a;
+  border-radius: 20rpx;
+  padding: 36rpx 28rpx;
+  margin-bottom: 28rpx;
+  min-width: 0;
+  overflow: hidden;
+}
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14rpx;
+  margin-bottom: 28rpx;
+  flex-wrap: wrap;
+}
+.ph-index {
+  font-size: 26rpx;
+  color: #e8c877;
+  border: 1rpx solid #6d5719;
+  border-radius: 6rpx;
+  padding: 2rpx 10rpx;
+}
+.ph-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #ece4d8;
+}
+.ph-note {
+  font-size: 22rpx;
+  color: #8a7a66;
+  min-width: 0;
+  word-break: break-all;
+}
+
+/* ---------- 爻画 ---------- */
+.l {
+  display: inline-block;
+  border-radius: 3rpx;
+  background: #c9a24a;
+  vertical-align: middle;
+}
+.l.yang {
+  width: 150rpx;
+  height: 18rpx;
+}
+.l.yin {
+  width: 150rpx;
+  height: 18rpx;
+  border-radius: 0;
+  background: linear-gradient(90deg,
+    #c9a24a 0 41%, transparent 41% 59%, #c9a24a 59% 100%);
+}
+.l.mini.yang, .l.mini.yin { width: 96rpx; height: 14rpx; }
+
+/* ---------- 状态标签 ---------- */
+.st {
+  display: inline-block;
+  font-size: 18rpx;
+  line-height: 1.5;
+  padding: 1rpx 8rpx;
+  margin: 2rpx 6rpx 2rpx 0;
+  border-radius: 5rpx;
+  border: 1rpx solid #4a3e30;
+  color: #a89880;
+  font-style: normal;
+}
+.st.旺 { color: #7fbf6a; border-color: #3f6b33; }
+.st.相 { color: #a8c46a; border-color: #5c6b33; }
+.st.休 { color: #8a7a66; border-color: #4a3e30; }
+.st.囚 { color: #d99a4a; border-color: #7a5324; }
+.st.死 { color: #c0392b; border-color: #7a2b21; }
+.st.真空, .st.假空 { color: #9b8bc4; border-color: #4e4270; }
+.st.月破 { color: #c0392b; border-color: #7a2b21; font-weight: 600; }
+.st.日冲 { color: #cf7a4a; border-color: #7a4a2b; }
+.st.暗动 { color: #6ab0c0; border-color: #2f5c66; }
+
+.tag-shi, .tag-ying {
+  display: inline-block;
+  font-size: 19rpx;
+  padding: 1rpx 9rpx;
+  border-radius: 5rpx;
+  font-weight: 600;
+}
+.tag-shi { color: #e8c877; border: 1rpx solid #6d5719; }
+.tag-ying { color: #7fb0c0; border: 1rpx solid #2f5c66; }
+
+/* ---------- 按钮 ---------- */
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+.btn {
+  flex: 1 1 200rpx;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 27rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid transparent;
+  padding: 0 20rpx;
+  line-height: 1.3;
+}
+.btn::after { border: none; }
+.btn-primary {
+  background: #c9a24a;
+  color: #241e17;
+  font-weight: 600;
+}
+.btn-accent {
+  background: transparent;
+  color: #e8c877;
+  border-color: #8a6d2f;
+}
+.btn-ghost {
+  background: transparent;
+  color: #a89880;
+  border-color: #4a3e30;
+}
+.btn.is-disabled { opacity: 0.5; }
+
+/* ---------- 文本块 ---------- */
+.tip {
+  margin-top: 20rpx;
+  padding-top: 18rpx;
+  border-top: 1rpx solid #352c22;
+  font-size: 21rpx;
+  color: #8a7a66;
+  line-height: 1.6;
+}
+.warn { color: #d99a4a; }
+
+/* 子块（解卦页各段） */
+.ipb {
+  background: #1c1815;
+  border: 1rpx solid #352c22;
+  border-radius: 12rpx;
+  padding: 24rpx 20rpx;
+  margin-bottom: 20rpx;
+}
+.ipb-title {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #e8c877;
+  margin-bottom: 14rpx;
+}
+.ipb-p {
+  font-size: 24rpx;
+  color: #c9bda9;
+  line-height: 1.75;
+  margin-bottom: 10rpx;
+}
+.ipb-li {
+  font-size: 23rpx;
+  color: #c9bda9;
+  line-height: 1.75;
+  padding-left: 8rpx;
+}

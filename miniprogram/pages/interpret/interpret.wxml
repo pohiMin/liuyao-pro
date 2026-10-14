@@ -1,0 +1,163 @@
+<view class="page">
+  <block wx:if="{{ready}}">
+    <!-- 类别切换：可随时改所问，重解此卦 -->
+    <view class="panel">
+      <view class="ask-row">
+        <text class="ask-label">所问何事（可改，卦象不变）</text>
+        <picker
+          mode="selector"
+          range="{{topics}}"
+          range-key="label"
+          value="{{topicIndex}}"
+          bindchange="onTopicChange"
+        >
+          <view class="topic-sel">
+            <text>{{topics[topicIndex].label}}</text>
+            <text class="caret">▾</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 吉凶总判 -->
+    <view class="panel">
+      <view class="panel-head">
+        <text class="ph-index">三</text>
+        <text class="ph-title">解卦</text>
+        <text class="ph-note">用神取用 · 吉凶断语 · 动爻详参</text>
+      </view>
+
+      <view class="ip-top">
+        <view class="ip-verdict {{top.verdictClass}}">
+          <view class="iv-word">{{top.verdict}}</view>
+          <view class="iv-topic">所问：{{top.topic}}</view>
+        </view>
+        <view class="ip-score">
+          <view class="is-bar">
+            <view class="is-fill" style="width:{{top.scorePct}}%"></view>
+          </view>
+          <view class="is-num">综合吉凶指数 {{top.scoreText}}</view>
+        </view>
+      </view>
+
+      <view class="ip-summary">{{summary}}</view>
+      <view class="ip-advice"><text class="gc-k">断语</text>{{advice}}</view>
+    </view>
+
+    <!-- 用神取用 -->
+    <view class="panel">
+      <view class="ipb">
+        <text class="ipb-title">用神取用</text>
+        <view class="ipb-p">{{yongshen.desc}}。</view>
+        <view wx:if="{{yongshen.empty}}" class="ipb-p warn">卦中用神不上卦，须凭伏神与世应推断，事在暗处。</view>
+        <view wx:for="{{yongshen.list}}" wx:key="text" class="ipb-li">· {{item.text}}</view>
+        <view wx:for="{{yongshen.notes}}" wx:key="gz" class="ysn">
+          <text class="ysn-h">{{item.gz}} {{item.qin}}：</text>{{item.text}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 世应关系 -->
+    <view class="panel">
+      <view class="ipb">
+        <text class="ipb-title">世应关系</text>
+        <view class="ipb-p">{{shiying.line}}</view>
+        <view class="ipb-p">{{shiying.note}}</view>
+        <view wx:if="{{shiying.rule}}" class="shirule">
+          <text class="shirule-h">{{shiying.rule.qin}}持世</text>{{shiying.rule.note}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 飞伏神 -->
+    <view wx:if="{{fuShen}}" class="panel">
+      <view class="ipb">
+        <text class="ipb-title">飞伏神</text>
+        <view class="ipb-p">{{fuShen.summary}}</view>
+        <view class="fu-grid">
+          <view class="fu"><text class="fu-k">飞神</text>{{fuShen.fei}}</view>
+          <view class="fu"><text class="fu-k">伏神</text>{{fuShen.fu}}</view>
+        </view>
+        <view class="fu-judge {{fuShen.usable ? 'ok' : 'no'}}">{{fuShen.usableText}}</view>
+        <view wx:if="{{fuShen.qi}}" class="fu-qi">
+          <text class="fu-qi-h">{{fuShen.qi.title}}</text>{{fuShen.qi.note}}
+          <view class="fu-need">须{{fuShen.qi.need}}　（{{fuShen.qi.level}}）</view>
+        </view>
+        <view wx:if="{{fuShen.up.length}}" class="fu-why">
+          <text class="fu-why-h">有力之处</text>{{fuShen.up.join('；')}}
+        </view>
+        <view wx:if="{{fuShen.down.length}}" class="fu-why">
+          <text class="fu-why-h">无力之处</text>{{fuShen.down.join('；')}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 元神忌神仇神 -->
+    <view wx:if="{{yuanJiChou}}" class="panel">
+      <view class="ipb">
+        <text class="ipb-title">元神 · 忌神 · 仇神</text>
+        <view class="yjc-grid">
+          <view class="yj yuan"><text class="yj-k">元神</text>{{yuanJiChou.yuan}}</view>
+          <view class="yj ji"><text class="yj-k">忌神</text>{{yuanJiChou.ji}}</view>
+          <view class="yj chou"><text class="yj-k">仇神</text>{{yuanJiChou.chou}}</view>
+        </view>
+        <view class="ipb-p yjc-rule">{{yuanJiChou.rule}}</view>
+        <view wx:if="{{yuanJiChou.yuanNotes.length}}" class="yjc-n">
+          <text class="yjc-n-h">元神</text>{{yuanJiChou.yuanNotes.join('；')}}
+        </view>
+        <view wx:if="{{yuanJiChou.jiNotes.length}}" class="yjc-n">
+          <text class="yjc-n-h">忌神</text>{{yuanJiChou.jiNotes.join('；')}}
+        </view>
+        <view wx:if="{{yuanJiChou.chouNotes}}" class="yjc-n">
+          <text class="yjc-n-h">仇神</text>{{yuanJiChou.chouNotes}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 卦体格局 -->
+    <view wx:if="{{guaGe.length}}" class="panel">
+      <view class="ipb">
+        <text class="ipb-title">卦体格局</text>
+        <view wx:for="{{guaGe}}" wx:key="*this" class="ipb-li">· {{item}}</view>
+      </view>
+    </view>
+
+    <!-- 动爻详参 / 静卦 -->
+    <view class="panel">
+      <block wx:if="{{moving.length}}">
+        <text class="ipb-title">动爻详参</text>
+        <view wx:for="{{moving}}" wx:key="title" class="mv-card">
+          <view class="mvc-head">
+            <text class="mvc-t">{{item.title}}</text>
+            <text class="lbl {{item.labelClass}}">{{item.label}}</text>
+          </view>
+          <view class="mvc-chg">{{item.change}}</view>
+          <view class="mvc-ci">{{item.yaoCi}}</view>
+          <view wx:if="{{item.xiaoXiang}}" class="mvc-xx"><text class="gc-k">象曰</text>{{item.xiaoXiang}}</view>
+        </view>
+      </block>
+      <block wx:else>
+        <text class="ipb-title">静卦</text>
+        <view class="ipb-p">{{noMoving}}</view>
+      </block>
+    </view>
+
+    <!-- 卦象解读 -->
+    <view wx:if="{{mean}}" class="panel">
+      <view class="ipb">
+        <text class="ipb-title">{{mean.title}}</text>
+        <view class="ipb-p mn-white">{{mean.white}}</view>
+        <view class="mn"><text class="mn-k">事业</text>{{mean.career}}</view>
+        <view class="mn"><text class="mn-k">感情</text>{{mean.love}}</view>
+        <view class="mn"><text class="mn-k">健康</text>{{mean.health}}</view>
+      </view>
+    </view>
+
+    <view class="btn-row">
+      <button class="btn btn-primary" bindtap="onGoPan">回看排盘</button>
+      <button class="btn btn-ghost" bindtap="onGoDivine">重新起卦</button>
+    </view>
+
+    <view class="tip">※ 本页内容由《周易》卦爻辞、京房纳甲与《增删卜易》《卜筮正宗》规则推演，属传统文化研究与自我省思参考，不作为任何决策依据。</view>
+  </block>
+</view>

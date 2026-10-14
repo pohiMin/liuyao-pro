@@ -1,0 +1,202 @@
+/* 起卦页私有样式
+ * 全局样式（page / .page / .panel / .panel-head / .l / .btn / .tip）见 app.wxss
+ * 注意：WXSS 不支持 CSS 自定义属性（var()），故全部写为字面量。
+ */
+
+.hero {
+  padding: 56rpx 8rpx 40rpx;
+  text-align: center;
+}
+.hero-title {
+  font-size: 52rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+  color: #e8c877;
+}
+.hero-sub {
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  color: #a89880;
+  letter-spacing: 1rpx;
+}
+.hero-rule {
+  margin: 32rpx auto 0;
+  width: 200rpx;
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent, #8a6d2f, transparent);
+}
+
+.ask-label {
+  display: block;
+  font-size: 24rpx;
+  color: #a89880;
+  margin-bottom: 14rpx;
+}
+.topic-sel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2f2820;
+  border: 1rpx solid #4a3e30;
+  border-radius: 12rpx;
+  padding: 22rpx 20rpx;
+  font-size: 28rpx;
+  color: #ece4d8;
+}
+.caret {
+  color: #8a7a66;
+  font-size: 24rpx;
+}
+.ask-hint {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 21rpx;
+  color: #8a7a66;
+}
+
+.stage { }
+
+.shell-wrap {
+  position: relative;
+  width: 420rpx;
+  height: 420rpx;
+  margin: 0 auto 40rpx;
+}
+.shell {
+  position: absolute;
+  left: 0; top: 0;
+  width: 420rpx;
+  height: 420rpx;
+}
+.shell-img {
+  width: 100%;
+  height: 100%;
+}
+.shell.shake {
+  animation: shake 280ms ease-in-out;
+}
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg) translateX(0); }
+  20% { transform: rotate(-7deg) translateX(-12rpx); }
+  45% { transform: rotate(6deg) translateX(10rpx); }
+  70% { transform: rotate(-4deg) translateX(-6rpx); }
+}
+
+.coin-box {
+  display: flex;
+  gap: 28rpx;
+  justify-content: center;
+  margin: 4rpx 0 32rpx;
+}
+.coin-slot {
+  width: 92rpx;
+  text-align: center;
+}
+.coin-wrap {
+  width: 92rpx;
+  height: 92rpx;
+  transition: transform 420ms cubic-bezier(.2,.8,.3,1);
+}
+.coin-wrap.flip {
+  transform: rotateY(180deg);
+}
+.coin-img {
+  width: 100%;
+  height: 100%;
+}
+.coin-label {
+  margin-top: 6rpx;
+  font-size: 19rpx;
+  color: #8a7a66;
+}
+
+.progress {
+  margin: 8rpx 0 24rpx;
+}
+.prog-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 9rpx 0;
+  min-width: 0;
+}
+.prog-row.is-empty { opacity: 0.35; }
+.prog-name {
+  width: 60rpx;
+  font-size: 22rpx;
+  color: #a89880;
+  flex-shrink: 0;
+}
+.prog-line { width: 156rpx; flex-shrink: 0; }
+.prog-mark {
+  width: 34rpx;
+  font-size: 24rpx;
+  color: #6d5719;
+  flex-shrink: 0;
+  text-align: center;
+}
+.prog-mark.is-mv { color: #c0392b; font-weight: 700; }
+.prog-txt {
+  font-size: 22rpx;
+  color: #8a7a66;
+}
+
+.last-yao {
+  margin-bottom: 20rpx;
+  padding: 16rpx 18rpx;
+  background: #2f2820;
+  border-left: 4rpx solid #8a6d2f;
+  border-radius: 8rpx;
+  font-size: 23rpx;
+  color: #c9bda9;
+  line-height: 1.6;
+}
+
+.status {
+  font-size: 22rpx;
+  color: #8a7a66;
+  line-height: 1.6;
+  min-height: 34rpx;
+}
+
+.result-bits {
+  background: #1c1815;
+  border-radius: 12rpx;
+  padding: 20rpx 18rpx;
+  margin-bottom: 20rpx;
+}
+.res-yao {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 8rpx 0;
+  min-width: 0;
+}
+.res-pos {
+  width: 40rpx;
+  font-size: 21rpx;
+  color: #8a7a66;
+  flex-shrink: 0;
+}
+.res-gz {
+  width: 96rpx;
+  font-size: 22rpx;
+  color: #c9a24a;
+  flex-shrink: 0;
+}
+.res-qin {
+  width: 80rpx;
+  font-size: 22rpx;
+  color: #a89880;
+  flex-shrink: 0;
+}
+.res-sy {
+  font-size: 20rpx;
+  color: #c0392b;
+  font-weight: 600;
+}
+.result-note {
+  font-size: 24rpx;
+  color: #c9bda9;
+  line-height: 1.7;
+}

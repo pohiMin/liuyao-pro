@@ -1,0 +1,289 @@
+/* 解卦页样式（共享样式由 app.wxss 提供） */
+
+/* ---------- 类别切换 ---------- */
+.ask-row { }
+.ask-label {
+  display: block;
+  font-size: 24rpx;
+  color: #a89880;
+  margin-bottom: 14rpx;
+}
+.topic-sel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2f2820;
+  border: 1rpx solid #4a3e30;
+  border-radius: 12rpx;
+  padding: 22rpx 20rpx;
+  font-size: 28rpx;
+  color: #ece4d8;
+}
+.caret {
+  color: #8a7a66;
+  font-size: 24rpx;
+}
+
+/* ---------- 吉凶总判 ---------- */
+.ip-top {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+.ip-verdict {
+  width: 200rpx;
+  flex-shrink: 0;
+  text-align: center;
+  padding: 20rpx 0;
+  border-radius: 12rpx;
+  border: 1rpx solid #4a3e30;
+  background: #1c1815;
+}
+.iv-word {
+  font-size: 44rpx;
+  font-weight: 600;
+  letter-spacing: 4rpx;
+  line-height: 1.2;
+}
+.iv-topic {
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #8a7a66;
+}
+.v-daji .iv-word { color: #e8c877; }
+.v-ji .iv-word   { color: #a8c46a; }
+.v-ping .iv-word { color: #c9bda9; }
+.v-xiaoxiong .iv-word { color: #d99a4a; }
+.v-xiong .iv-word { color: #c0392b; }
+
+.ip-score { flex: 1; min-width: 0; }
+.is-bar {
+  height: 16rpx;
+  border-radius: 8rpx;
+  background: #2f2820;
+  overflow: hidden;
+}
+.is-fill {
+  height: 100%;
+  border-radius: 8rpx;
+  background: linear-gradient(90deg, #8a6d2f, #e8c877);
+}
+.is-num {
+  margin-top: 10rpx;
+  font-size: 21rpx;
+  color: #8a7a66;
+}
+
+.ip-summary {
+  font-size: 25rpx;
+  color: #ece4d8;
+  line-height: 1.8;
+  padding: 20rpx;
+  background: #1c1815;
+  border-radius: 12rpx;
+  margin-bottom: 18rpx;
+}
+.ip-advice {
+  font-size: 24rpx;
+  color: #c9bda9;
+  line-height: 1.8;
+  padding: 20rpx;
+  background: #1c1815;
+  border-radius: 12rpx;
+}
+
+/* ---------- 世应 ---------- */
+.sy-note { color: #8a7a66; }
+.shirule {
+  margin-top: 12rpx;
+  padding: 14rpx 16rpx;
+  background: #2f2820;
+  border-left: 4rpx solid #8a6d2f;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  color: #a89880;
+  line-height: 1.7;
+}
+.shirule-h {
+  color: #e8c877;
+  font-weight: 600;
+  margin-right: 10rpx;
+}
+
+/* ---------- 飞伏神 ---------- */
+.fu-grid {
+  display: flex;
+  gap: 14rpx;
+  margin: 14rpx 0;
+}
+.fu {
+  flex: 1;
+  min-width: 0;
+  font-size: 22rpx;
+  color: #c9bda9;
+  line-height: 1.6;
+  padding: 14rpx;
+  background: #2f2820;
+  border-radius: 8rpx;
+}
+.fu-k {
+  display: block;
+  font-size: 20rpx;
+  color: #8a7a66;
+  margin-bottom: 4rpx;
+}
+.fu-judge {
+  font-size: 24rpx;
+  font-weight: 600;
+  padding: 14rpx;
+  border-radius: 8rpx;
+  text-align: center;
+}
+.fu-judge.ok { color: #7fbf6a; background: rgba(127, 191, 106, 0.1); }
+.fu-judge.no { color: #c0392b; background: rgba(192, 57, 43, 0.1); }
+.fu-qi {
+  margin-top: 14rpx;
+  font-size: 22rpx;
+  color: #a89880;
+  line-height: 1.7;
+}
+.fu-qi-h {
+  color: #e8c877;
+  font-weight: 600;
+  margin-right: 10rpx;
+}
+.fu-need {
+  margin-top: 6rpx;
+  font-size: 21rpx;
+  color: #8a7a66;
+}
+.fu-why {
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #a89880;
+  line-height: 1.7;
+}
+.fu-why-h {
+  color: #e8c877;
+  font-weight: 600;
+  margin-right: 10rpx;
+}
+
+/* ---------- 元神忌神仇神 ---------- */
+.yjc-grid {
+  display: flex;
+  gap: 12rpx;
+  margin: 14rpx 0;
+}
+.yj {
+  flex: 1;
+  min-width: 0;
+  font-size: 22rpx;
+  padding: 12rpx;
+  border-radius: 8rpx;
+  text-align: center;
+  background: #2f2820;
+}
+.yj-k {
+  display: block;
+  font-size: 20rpx;
+  margin-bottom: 4rpx;
+  opacity: 0.85;
+}
+.yj.yuan { color: #7fbf6a; }
+.yj.ji { color: #c0392b; }
+.yj.chou { color: #d99a4a; }
+.yjc-rule { color: #8a7a66; }
+.yjc-n {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #a89880;
+  line-height: 1.7;
+}
+.yjc-n-h {
+  color: #e8c877;
+  font-weight: 600;
+  margin-right: 10rpx;
+}
+
+/* ---------- 用神注解 ---------- */
+.ysn {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #a89880;
+  line-height: 1.7;
+}
+.ysn-h { color: #e8c877; font-weight: 600; }
+
+/* ---------- 动爻详参 ---------- */
+.mv-card {
+  padding: 18rpx;
+  background: #2f2820;
+  border-radius: 10rpx;
+  margin-bottom: 14rpx;
+}
+.mv-card:last-child { margin-bottom: 0; }
+.mvc-head {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-bottom: 10rpx;
+  flex-wrap: wrap;
+}
+.mvc-t {
+  font-size: 25rpx;
+  font-weight: 600;
+  color: #ece4d8;
+}
+.lbl {
+  font-size: 20rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 5rpx;
+  border: 1rpx solid #4a3e30;
+}
+.lbl-ji { color: #7fbf6a; border-color: #3f6b33; }
+.lbl-zhong { color: #d99a4a; border-color: #7a5324; }
+.lbl-xiong { color: #c0392b; border-color: #7a2b21; }
+.mvc-chg {
+  font-size: 22rpx;
+  color: #e8c877;
+  margin-bottom: 8rpx;
+}
+.mvc-ci {
+  font-size: 23rpx;
+  color: #c9bda9;
+  line-height: 1.7;
+}
+.mvc-xx {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #8a7a66;
+  line-height: 1.7;
+}
+
+/* ---------- 卦象解读 ---------- */
+.mn-white {
+  padding: 16rpx;
+  background: #2f2820;
+  border-radius: 8rpx;
+  color: #ece4d8;
+  margin-bottom: 14rpx;
+}
+.mn {
+  padding: 12rpx 0;
+  font-size: 22rpx;
+  color: #a89880;
+  line-height: 1.7;
+  border-bottom: 1rpx solid #2a231b;
+}
+.mn:last-child { border-bottom: none; }
+.mn-k {
+  display: inline-block;
+  font-size: 20rpx;
+  color: #e8c877;
+  border: 1rpx solid #6d5719;
+  border-radius: 5rpx;
+  padding: 1rpx 8rpx;
+  margin-right: 12rpx;
+}

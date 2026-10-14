@@ -1,0 +1,128 @@
+<view class="page">
+  <block wx:if="{{ready}}">
+    <!-- 卦名头 -->
+    <view class="panel">
+      <view class="panel-head">
+        <text class="ph-index">二</text>
+        <text class="ph-title">排盘</text>
+        <text class="ph-note">纳甲装卦 · 六亲六神 · 旺衰旬空 · 卦体格局</text>
+      </view>
+
+      <view class="pan-head">
+        <view class="ph-left">
+          <view class="ph-symbol">{{head.symbol}}</view>
+          <view>
+            <view class="ph-title">{{head.name}}</view>
+            <view class="ph-sub">{{head.sub}}</view>
+          </view>
+        </view>
+        <view class="ph-right">
+          <view class="ph-ba">{{head.upper}}</view>
+          <view class="ph-ba">{{head.lower}}</view>
+          <view class="ph-sy">
+            <text class="tag-shi">{{head.shi}}</text>
+            <text class="tag-ying">{{head.ying}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="pan-guaCi"><text class="gc-k">卦辞</text>{{head.guaCi}}</view>
+      <view class="pan-guaCi"><text class="gc-k">大象</text>{{head.daXiang}}</view>
+    </view>
+
+    <!-- 六爻表 -->
+    <view class="panel">
+      <view class="yao-thead">
+        <text class="c-pos">爻位</text>
+        <text class="c-shen">六神</text>
+        <text class="c-line">本卦</text>
+        <text class="c-qin">六亲</text>
+        <text class="c-gz">纳甲</text>
+        <text class="c-cg">变爻</text>
+        <text class="c-state">状态</text>
+      </view>
+      <view
+        wx:for="{{rows}}"
+        wx:key="pos"
+        class="yao-row {{item.moving ? 'moving' : ''}}"
+      >
+        <text class="c-pos">{{item.pos}}</text>
+        <text class="c-shen" style="color:{{item.shenColor}}">{{item.shen}}</text>
+        <view class="c-line">
+          <view wx:if="{{item.yang}}" class="l mini yang"></view>
+          <view wx:else class="l mini yin"></view>
+          <text wx:if="{{item.moving}}" class="mv">{{item.yang ? '○' : '×'}}</text>
+        </view>
+        <text class="c-qin">{{item.qin}}</text>
+        <text class="c-gz" style="color:{{item.gzColor}}">{{item.gz}}</text>
+        <view class="c-cg">
+          <block wx:if="{{item.cg}}">
+            <text style="color:{{item.cgColor}}">{{item.cg}}</text>
+            <text class="c-cqin">{{item.cgQin}}</text>
+            <text wx:if="{{item.cTag}}" class="c-ctag">{{item.cTag}}</text>
+          </block>
+        </view>
+        <view class="c-state">
+          <text wx:for="{{item.states}}" wx:key="t" class="st {{item.c}}">{{item.t}}</text>
+          <text wx:if="{{item.sy}}" class="tag-{{item.syType}} sy-tag">{{item.sy}}</text>
+        </view>
+      </view>
+
+      <!-- 变卦 -->
+      <view wx:if="{{changedInfo}}" class="pan-changed">
+        <view class="pc-head">
+          <text class="gc-k">变卦</text>
+          <text>{{changedInfo.title}}</text>
+          <text class="pc-sub">{{changedInfo.sub}}</text>
+        </view>
+        <view class="pc-guaCi">{{changedInfo.guaCi}}</view>
+      </view>
+
+      <!-- 互错综 -->
+      <view class="pan-related">
+        <text wx:for="{{related}}" wx:key="k" class="rel-item">{{item.k}} {{item.v}}</text>
+      </view>
+    </view>
+
+    <!-- 卦体格局 -->
+    <view wx:if="{{geTags.length}}" class="panel">
+      <view class="block-title">卦体</view>
+      <view wx:for="{{geTags}}" wx:key="t" class="gt">
+        <text class="gt-t">{{item.t}}</text>
+        <text class="gt-d">{{item.d}}</text>
+      </view>
+    </view>
+
+    <!-- 月建日辰 -->
+    <view class="panel">
+      <view class="block-title">时相</view>
+      <view wx:for="{{meta}}" wx:key="k" class="mt">
+        <text class="mt-k">{{item.k}}</text>
+        <text class="mt-v">{{item.v}}</text>
+      </view>
+      <view wx:if="{{noDay}}" class="tip warn">未能取得月建日辰，旺衰与旬空暂不参断。</view>
+    </view>
+
+    <!-- 取象 -->
+    <view wx:if="{{xiang}}" class="panel">
+      <view class="block-title">取象</view>
+      <view wx:for="{{xiang}}" wx:key="*this" class="ipb-li">· {{item}}</view>
+    </view>
+
+    <!-- 神煞参看 -->
+    <view wx:if="{{shenSha.length}}" class="panel">
+      <view class="block-title">神煞参看</view>
+      <view wx:for="{{shenSha}}" wx:key="name" class="ss">
+        <text class="ss-n">{{item.name}}</text>
+        <text class="ss-z">{{item.zhi}}</text>
+        <text class="ss-note">{{item.note}}</text>
+      </view>
+      <view class="tip">{{shenShaNote}}</view>
+    </view>
+
+    <view class="btn-row">
+      <button class="btn btn-primary" bindtap="onGoInterpret">看解卦</button>
+      <button class="btn btn-ghost" bindtap="onGoDivine">重新起卦</button>
+    </view>
+  </block>
+</view>

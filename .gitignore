@@ -1,0 +1,26 @@
+# 操作系统与编辑器
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器工作区配置
+.vscode/
+.idea/
+
+# 依赖与构建产物
+node_modules/
+dist/
+build/
+*.log
+npm-debug.log*
+
+# 密钥与本地环境
+.env
+.env.*
+*.key
+*.pem
+*.p12
+
+# 项目内部归档与临时产物
+_archive/
+*.zip

@@ -1,0 +1,125 @@
+<view class="page">
+  <!-- 页首 -->
+  <view class="hero">
+    <view class="hero-title">龟壳铜钱六爻</view>
+    <view class="hero-sub">三枚乾隆通宝 · 一卦六爻 · 自动纳甲装卦</view>
+    <view class="hero-rule"></view>
+  </view>
+
+  <view class="panel">
+    <view class="panel-head">
+      <text class="ph-index">一</text>
+      <text class="ph-title">起卦</text>
+      <text class="ph-note">心中默念所问之事，诚心起卦</text>
+    </view>
+
+    <!-- 所问何事：先立问题，再起卦（决定用神） -->
+    <view class="ask-row">
+      <text class="ask-label">所问何事</text>
+      <picker
+        mode="selector"
+        range="{{topics}}"
+        range-key="label"
+        value="{{topicIndex}}"
+        bindchange="onTopicChange"
+      >
+        <view class="topic-sel">
+          <text>{{topics[topicIndex].label}}</text>
+          <text class="caret">▾</text>
+        </view>
+      </picker>
+      <text class="ask-hint">选定类别以定用神，起卦后可随时更改</text>
+    </view>
+
+      <!-- 龟壳与三枚铜钱 -->
+    <view class="stage">
+      <view class="shell-wrap">
+        <view class="shell {{shaking ? 'shake' : ''}}">
+          <image class="shell-img" src="{{shellImg}}" mode="aspectFit" />
+        </view>
+      </view>
+      <view class="coin-box {{tossing ? 'tossing' : ''}}">
+        <view
+          wx:for="{{coins}}"
+          wx:key="i"
+          class="coin-slot"
+        >
+          <view class="coin-wrap {{item.show ? 'flip' : ''}}">
+            <image class="coin-img" src="{{item.img}}" mode="aspectFit" />
+          </view>
+          <view class="coin-label">第{{item.cn}}枚</view>
+        </view>
+      </view>
+
+      <!-- 进度 -->
+      <view class="progress">
+        <view
+          wx:for="{{yaos}}"
+          wx:key="pos"
+          wx:for-index="idx"
+          class="prog-row {{idx < 6 - yaos.length ? 'is-empty' : ''}}"
+        >
+          <text class="prog-name">{{item.pos}}爻</text>
+          <view class="prog-line">
+            <view wx:if="{{item.yang}}" class="l yang"></view>
+            <view wx:else class="l yin"></view>
+          </view>
+          <text class="prog-mark {{item.moving ? 'is-mv' : ''}}">{{item.mark}}</text>
+          <text class="prog-txt">{{item.label}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{lastYao}}" class="last-yao">{{lastYao}}</view>
+
+      <!-- 操作 -->
+      <view class="btn-row">
+        <button
+          class="btn btn-primary {{tossing ? 'is-disabled' : ''}}"
+          bindtap="onTossOne"
+          disabled="{{tossing}}"
+        >{{tossBtnText}}</button>
+        <button
+          wx:if="{{!finished}}"
+          class="btn btn-accent {{tossing ? 'is-disabled' : ''}}"
+          bindtap="onAutoFull"
+          disabled="{{tossing}}"
+        >自动完成六爻</button>
+        <button
+          wx:if="{{finished}}"
+          class="btn btn-accent"
+          bindtap="onGoPan"
+        >查看卦象</button>
+        <button
+          class="btn btn-ghost"
+          bindtap="onReset"
+        >重新起卦</button>
+      </view>
+
+      <view class="status">{{status}}</view>
+    </view>
+  </view>
+
+  <!-- 卦象结果（六爻成卦后展开） -->
+  <view wx:if="{{result}}" class="panel">
+    <view class="panel-head">
+      <text class="ph-index">二</text>
+      <text class="ph-title">卦象</text>
+      <text class="ph-note">{{result.hexName}} · {{result.palace}} · {{result.palaceType}}</text>
+    </view>
+    <view class="result-bits">
+      <view wx:for="{{result.yaos}}" wx:key="pos" class="res-yao">
+        <text class="res-pos">{{item.pos}}</text>
+        <view wx:if="{{item.yang}}" class="l yang"></view>
+        <view wx:else class="l yin"></view>
+        <text class="res-gz">{{item.gz}}</text>
+        <text class="res-qin">{{item.qin}}</text>
+        <text wx:if="{{item.shiying}}" class="res-sy">{{item.shiying}}</text>
+      </view>
+    </view>
+    <view class="result-note">
+      <text>本卦 {{result.hexName}}</text>
+      <text wx:if="{{result.changedName}}">　变卦 {{result.changedName}}</text>
+    </view>
+    <view class="tip">点击「查看卦象」进入排盘，看纳甲六亲、六神旺衰与卦体格局；再进入解卦取用神断吉凶。</view>
+  </view>
+</view>

@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/divine/divine",
+    "pages/pan/pan",
+    "pages/interpret/interpret"
+  ],
+  "window": {
+    "navigationBarTitleText": "六爻 pro",
+    "navigationBarBackgroundColor": "#1c1815",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#14110e",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
