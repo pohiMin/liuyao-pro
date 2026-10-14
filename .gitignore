@@ -20,3 +20,7 @@ node_modules/
 Thumbs.db
 .idea/
 .vscode/
+
+# WorkBuddy 会话数据与部署元数据（含本机绝对路径，不入库）
+.workbuddy/
+*.genie
