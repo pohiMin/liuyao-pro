@@ -858,6 +858,8 @@ body { overscroll-behavior-y: none; }
 .dd-menu {
   position: absolute; z-index: 30;
   left: 0; right: 0; top: calc(100% + 6px);
+  /* 默认向下弹；方向与 max-height 由 app.js 的 place() 按实际可用空间
+     每次展开时重算（下面不够就往上弹），这里的值只作 JS 失效时的兜底。 */
   max-height: 252px; overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   background: #241d15; border: 1px solid #4a3e30; border-radius: 10px;

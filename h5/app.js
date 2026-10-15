@@ -106,6 +106,11 @@
         }
       }
       function onDocClick() { close(); }
+      function onReflow() {
+        // 页面滚动或窗口尺寸变化（手机地址栏收放、旋屏）后，控件离屏幕边缘的
+        // 距离会变，原来选的方向可能已经出界 → 重新量一次
+        if (!menu.hidden) place();
+      }
       function onDocKey(e) {
         if (menu.hidden) return;
         if (e.key === 'Escape') { close(); label.focus(); return; }
@@ -120,11 +125,50 @@
           paint(); showOpt(opts[cur]);
         }
       }
+      /** 决定菜单往上还是往下弹，并按实际可用空间定高度。
+       *  为什么必须这么做：「所问何事」这块在页面偏下位置，只往下弹会顶出屏幕底边，
+       *  14 个类别只露 6 个、菜单底部圆角还被切掉（用户 2026-10-15 实测截图）。
+       *  量 scrollHeight 前先清掉内联 max-height —— scrollHeight 返回的是内容高度、
+       *  不受 max-height 限制，所以清不清都能量到真实自然高度。 */
+      function place() {
+        var GAP = 6, PAD = 8, CAP = 252;
+        var r = label.getBoundingClientRect();
+        var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+
+        menu.style.top = '';
+        menu.style.bottom = '';
+        menu.style.maxHeight = '';
+
+        var below = Math.max(0, vh - r.bottom - GAP - PAD);
+        var above = Math.max(0, r.top - GAP - PAD);
+        var natural = menu.scrollHeight || 0;
+        var canDown = natural <= below;
+        var canUp = natural <= above;
+        var down = canDown ? true : (canUp ? false : below >= above);
+        var space = down ? below : above;
+        /* 高度必须同时受三样约束：可用空间（不能溢出，否则又变成用户截图那个毛病）、
+           内容自然高度（不留空白）、CAP（一屏铺满半屏不合适）。
+           这里刻意不设下限——宁可菜单很矮，也不能越出屏幕。 */
+        var h = Math.min(CAP, (canDown || canUp) ? natural : space);
+        menu.style.maxHeight = Math.max(0, h) + 'px';
+
+        if (down) {
+          menu.style.top = 'calc(100% + ' + GAP + 'px)';
+          menu.style.bottom = 'auto';
+        } else {
+          menu.style.bottom = 'calc(100% + ' + GAP + 'px)';
+          menu.style.top = 'auto';
+        }
+      }
       function open() {
         menu.hidden = false;
         label.setAttribute('aria-expanded', 'true');
+        place();
         document.addEventListener('click', onDocClick);
         document.addEventListener('keydown', onDocKey);
+        window.addEventListener('resize', onReflow);
+        // 捕获阶段才能收到任意滚动容器的滚动；滚一下控件可能就贴到屏幕边上了
+        window.addEventListener('scroll', onReflow, true);
         showOpt(opts[cur]);
       }
       function close() {
@@ -135,6 +179,8 @@
         label.setAttribute('aria-expanded', 'false');
         document.removeEventListener('click', onDocClick);
         document.removeEventListener('keydown', onDocKey);
+        window.removeEventListener('resize', onReflow);
+        window.removeEventListener('scroll', onReflow, true);
       }
       function toggle() { if (menu.hidden) open(); else close(); }
       function pick(n) {
