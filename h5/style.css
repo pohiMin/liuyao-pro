@@ -32,6 +32,19 @@ html, body {
 
 body { overscroll-behavior-y: none; }
 
+/* ---------- 鼠标拖拽滚动（drag-to-scroll）----------
+   按住页面任意位置拖动 = 滚动页面（桌面鼠标；触摸走原生滚动）。
+   实现见 app.js 的 LY.dragScroll，这个类只在「超过阈值、判定为拖动」的
+   期间加在 body 上。
+   user-select 必须在这里禁掉：按住正文拖动与「选中文本」是同一个
+   mousedown+mousemove 手势，不禁的话浏览器优先响应选中，页面滚不动。
+   cursor 要连 * 一起盖 —— 否则拖过按钮时光标会闪回 pointer。 */
+body.ds-drag { cursor: grabbing; }
+body.ds-drag, body.ds-drag * {
+  cursor: grabbing !important;
+  user-select: none; -webkit-user-select: none;
+}
+
 /* 触摸设备上 :hover 会「粘住」，按钮只在点击时反馈 */
 @media (hover: hover) {
   .btn:hover { filter: brightness(1.08); }

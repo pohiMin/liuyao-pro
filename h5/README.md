@@ -70,7 +70,7 @@ disc-d = clamp(268, 可用宽, 340)
 h5/
 ├── index.html / pan.html / interpret.html    三页
 ├── style.css                                 全局样式（盘面几何在此）
-├── app.js                                    共享运行时：状态存取 / 报错可见化 / DOM helper
+├── app.js                                    共享运行时：状态存取 / 报错可见化 / 话题下拉 / 鼠标拖拽滚动
 ├── page-divine.js                            起卦页逻辑（八卦盘构建 + 铜钱摇卦）
 ├── page-pan.js                               排盘页逻辑
 ├── page-interpret.js                         解卦页逻辑
@@ -159,11 +159,18 @@ node tests/h5-structure.test.js   # 结构层 6 项
 
 A13 话题下拉（`LY.topicSelect`，app.js）另有三份 jsdom 功能测试，
 因为「点了没反应」这类 bug 必须真派发事件才算证明过，而本沙箱起不来浏览器：
-`_preview/a13_topic_dropdown/` 下 `test_topic_dropdown.js`（组件 31 项）、
-`test_topic_integration.js`（起卦页端到端 17 项）、
-`test_topic_interpret.js`（解卦页端到端 20 项）。
+`_preview/a13_topic_dropdown/` 下 `test_topic_dropdown.js`（组件 40 项）、
+`test_topic_integration.js`（起卦页端到端 18 项）、
+`test_topic_interpret.js`（解卦页端到端 21 项）。
 它们依赖 jsdom，只装在 WorkBuddy 的 node workspace，**不是项目依赖**，
 所以不放进 `h5/tests/`；要用需先 `npm i jsdom`。
+
+鼠标拖拽滚动（`LY.dragScroll`，app.js 加载时自动装配，三页共用）：
+按住页面任意位置拖动 = 滚动页面，1:1 跟手；只接管鼠标指针，
+触摸走原生滚动（接过来会叠成双倍速度）。滚轮/键盘/触摸全部照旧。
+交互取舍（鼠标划词复制让位给拖动）与四个坑的兜法见 app.js 里该方法的注释。
+配套逻辑测试 `_preview/drag_scroll/test_drag_scroll.js`（24 项，
+默认打 `h5/app.js`，传路径可复测预览副本）。
 
 ## 铜钱素材
 

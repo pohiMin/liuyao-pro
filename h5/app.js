@@ -211,6 +211,114 @@
       };
     },
 
+    /**
+     * 鼠标拖拽滚动（drag-to-scroll）—— 按住页面任意位置拖动 = 滚动页面。
+     *
+     * 为什么需要：浏览器默认只有三个滚动手段 —— 滚轮、触摸、拖右侧滚动条。
+     * 手机上触摸本来就滚得动（本项目没有任何 touch-action:none、也没有
+     * preventDefault 吞手势），桌面上鼠标却不能「按住拖」—— 用户反馈
+     * 「整体页面支持滑动拖拽，不要只靠右侧滑动条才能动」。
+     *
+     * 只接管 pointerType === 'mouse'：触摸走原生滚动，接过来会叠成双倍速度。
+     *
+     * 四个必须兜住的坑：
+     *   ① 拖完不能误触发 click —— 从按钮上起手拖一下再松开，浏览器照样派发 click。
+     *      做法：pointerdown 时就给 document 挂一个捕获阶段 click 监听，
+     *      没拖动过（距离 < 阈值）立刻摘掉；拖动过就留着，恰好吞掉紧随其后的
+     *      那一个 click，吞完自动摘。下一个 pointerdown 也会摘 —— 所以这个监听
+     *      只可能吞到「属于本次拖动」的 click，不会误伤之后的正常点击。
+     *   ② 按住正文拖动不能变成「选中文本」—— 两者都是 mousedown+mousemove 手势，
+     *      浏览器优先响应选中。超过阈值就给 body 加 .ds-drag（user-select:none）
+     *      并清掉已形成的选区。代价：正文不能用鼠标划词复制（触摸长按选择不受影响）。
+     *   ③ 下拉菜单自己有滚动条（.dd-menu overflow-y:auto）—— 从菜单里起手不接管，
+     *      否则菜单滚不动、变成滚页面。
+     *   ④ 松手在浏览器窗口外时 pointerup 不会派发，手势会卡住 → 之后所有拖动失效。
+     *      不靠 setPointerCapture（它会把 mouseup 重定向到起手元素，click 会打到
+     *      起手元素上，反而绕过 ① 的防护）；改用「下次 pointerdown 无条件重置」
+     *      + window blur 时收手，卡住状态最多存活到下一次点击。
+     */
+    dragScroll: function () {
+      if (LY._dragScrollOn) return;        // 防重复装配（双份监听 = 双倍滚动速度）
+      if (!window.PointerEvent) return;    // 老浏览器安静退回原生行为
+      LY._dragScrollOn = true;
+
+      var TH = 5;                          // px：小于这个距离算点击，不滚动也不吞 click
+      var g = null;                        // 当前拖动手势
+      var swallow = null;                  // 坑①的 click 吞噬监听
+      var swallowTimer = 0;
+
+      function armSwallow() {
+        if (swallow) return;
+        swallow = function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          disarmSwallow();                 // 只吞一个
+        };
+        document.addEventListener('click', swallow, true);
+      }
+      function disarmSwallow() {
+        if (!swallow) return;
+        document.removeEventListener('click', swallow, true);
+        swallow = null;
+        if (swallowTimer) { clearTimeout(swallowTimer); swallowTimer = 0; }
+      }
+
+      function endGesture(e) {
+        // 多指并存时，只放行属于当前手势的那个 pointerup；blur 没有 pointerId，放行
+        if (g && e && typeof e.pointerId === 'number' && e.pointerId !== g.id) return;
+        var moved = !!(g && g.moved);
+        g = null;
+        document.body.classList.remove('ds-drag');
+        if (moved) {
+          // 拖动过：留给紧随的那个 click 吞噬；挂兜底定时器，
+          // 万一 click 因故没来（如松手正好在滚动条上），也不要永远挂着
+          if (swallowTimer) clearTimeout(swallowTimer);
+          swallowTimer = setTimeout(disarmSwallow, 600);
+        } else {
+          disarmSwallow();                 // 纯点击：绝不吞
+        }
+      }
+
+      document.addEventListener('pointerdown', function (e) {
+        if (e.pointerType !== 'mouse') return;   // 触摸/笔走原生滚动，不干预
+        disarmSwallow();                    // 新手势开始，旧的吞噬监听作废（坑④）
+        document.body.classList.remove('ds-drag');
+        if (g) g = null;                    // 上一手势没收尾（松手在窗口外）：重置
+        if (e.button !== 0) return;         // 只左键，右键留给上下文菜单
+        var t = e.target;
+        if (t && t.closest) {
+          if (t.closest('.dd-menu')) return;   // 菜单自己会滚（坑③）
+          if (t.closest('.reveal')) return;    // 成卦揭幕浮层盖上时，不拖背后的页面
+        }
+        g = {
+          id: e.pointerId, x: e.clientX, y: e.clientY,
+          sx: window.scrollX || 0, sy: window.scrollY || 0,
+          moved: false
+        };
+        armSwallow();                      // 先武装，pointerup 时再决定是否留（坑①）
+      });
+
+      document.addEventListener('pointermove', function (e) {
+        if (!g || e.pointerId !== g.id) return;
+        var dx = e.clientX - g.x;
+        var dy = e.clientY - g.y;
+        if (!g.moved) {
+          if (dx > -TH && dx < TH && dy > -TH && dy < TH) return;   // 阈值内算点击
+          g.moved = true;
+          document.body.classList.add('ds-drag');
+          var sel = window.getSelection && window.getSelection();
+          if (sel && sel.removeAllRanges) sel.removeAllRanges();    // 坑②
+        }
+        // 拖下去（dy>0）= 看上面的内容 = 向上滚；像拖一张真纸，1:1 跟手
+        window.scrollTo(g.sx - dx, g.sy - dy);
+        e.preventDefault();                // 拖动中不要选中正文 / 拖图片
+      }, { passive: false });
+
+      document.addEventListener('pointerup', endGesture);
+      document.addEventListener('pointercancel', endGesture);
+      window.addEventListener('blur', endGesture);   // 切窗口时收手，别把手势带出去
+    },
+
     /** 需要六爻才能进入的页面：无数据时跳回起卦页 */
     requireDivine: function () {
       var s = LY.state();
@@ -304,6 +412,10 @@
   };
 
   globalThis.LY = LY;
+
+  // 鼠标拖拽滚动：三页共用，页面不需要自己调。放在错误兜底之后装配 ——
+  // 它只挂 document/window 监听，不依赖任何页面结构。
+  LY.dragScroll();
 
   // 全局兜底：把未捕获异常显示到页面上，而不是只留在控制台
   window.addEventListener('error', function (e) {
