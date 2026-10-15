@@ -54,10 +54,6 @@
   }
 
   var current = normalizeTopic(st.topic);
-  var curLabel = (function () {
-    for (var i = 0; i < TOPICS.length; i++) if (TOPICS[i].key === current) return TOPICS[i].label;
-    return TOPICS[0].label;
-  })();
 
   try {
     render(current);
@@ -77,19 +73,11 @@
     var h = '';
 
     /* ---- 类别切换 ----
-       select 的选中项必须在渲染时按当前 topic 生成：
-       预先建好再改current 会导致换类别后下拉框显示的还是旧值。 */
-    var selHtml = '<select id="topic-select" style="display:none">';
-    TOPICS.forEach(function (t) {
-      selHtml += '<option value="' + t.key + '"' + (t.key === topic ? ' selected' : '') + '>'
-              + esc(t.label) + '</option>';
-    });
-    selHtml += '</select>';
-
+       下拉由 app.js 的 LY.topicSelect 自绘并按当前 topic 初始化，
+       切换后 render() 会重建整页、bind() 再建一次，所以选中项天然跟着走。 */
     h += '<div class="panel"><div class="ask-row">';
     h += '<span class="ask-label">所问何事（可改，卦象不变）</span>';
-    h += '<div class="topic-sel" id="topic-sel"><span>' + esc(curLabel) + '</span><span class="caret"></span></div>';
-    h += selHtml;
+    h += '<div class="dd" id="topic-dd"></div>';
     h += '</div></div>';
 
     /* ---- 吉凶总判 ---- */
@@ -238,22 +226,11 @@
   }
 
   function bind() {
-    var sel = document.getElementById('topic-select');
-    var label = document.getElementById('topic-sel');
-
-    // 用原生 select 承载移动端选择交互（H5 无 picker 组件）
-    label.addEventListener('click', function () {
-      sel.style.cssText = 'position:absolute;opacity:0;width:1px;height:1px;left:-9999px;display:block';
-      sel.click();
-    });
-    sel.addEventListener('change', function () {
-      var t = sel.value;
-      for (var i = 0; i < TOPICS.length; i++) {
-        if (TOPICS[i].key === t) curLabel = TOPICS[i].label;
-      }
-      LY.topic = t;
+    // 自绘下拉（app.js）：切换后重渲染整页，卦象不变、解读按新类别重算
+    LY.topicSelect(document.getElementById('topic-dd'), TOPICS, current, function (key) {
+      LY.topic = key;
       try {
-        render(t);
+        render(key);
       } catch (e) {
         LY.showError(e);
       }

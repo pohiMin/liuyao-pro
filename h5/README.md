@@ -157,6 +157,14 @@ node tests/h5-structure.test.js   # 结构层 6 项
 `engine-port.test.js` 直接指向 `vendor/`，测的是 H5 自己的算法层。
 `h5-structure.test.js` 查 class/id/ASCII/资源引用与页面 JS 的小程序 API 残留。
 
+A13 话题下拉（`LY.topicSelect`，app.js）另有三份 jsdom 功能测试，
+因为「点了没反应」这类 bug 必须真派发事件才算证明过，而本沙箱起不来浏览器：
+`_preview/a13_topic_dropdown/` 下 `test_topic_dropdown.js`（组件 31 项）、
+`test_topic_integration.js`（起卦页端到端 17 项）、
+`test_topic_interpret.js`（解卦页端到端 20 项）。
+它们依赖 jsdom，只装在 WorkBuddy 的 node workspace，**不是项目依赖**，
+所以不放进 `h5/tests/`；要用需先 `npm i jsdom`。
+
 ## 铜钱素材
 
 铜钱正面是 `assets/coin-qianlong-front.png`（256×256，94KB，

@@ -388,29 +388,11 @@
 
   /* ---------- 话题选择 ---------- */
   function initTopics() {
-    var sel = $('topic-select');
-    TOPICS.forEach(function (t, i) {
-      var o = document.createElement('option');
-      o.value = t.key;
-      o.textContent = t.label;
-      sel.appendChild(o);
-    });
-    $('topic-label').textContent = TOPICS[0].label;
+    /* 下拉由 app.js 的 LY.topicSelect 自绘（原来「显示隐藏 select + sel.click()」
+       那种写法在浏览器里点不开，等于从来没生效过，详见 app.js 里的说明）。 */
     LY.topic = TOPICS[0].key;
-
-    $('topic-sel').addEventListener('click', function () {
-      // 用原生 select 保证移动端体验一致（H5 没有 picker）
-      sel.style.display = 'block';
-      sel.style.position = 'absolute';
-      sel.style.opacity = '0';
-      sel.style.width = '1px';
-      sel.click();
-    });
-    sel.addEventListener('change', function () {
-      var t = TOPICS[sel.selectedIndex] || TOPICS[0];
-      $('topic-label').textContent = t.label;
-      LY.topic = t.key;
-      sel.style.display = 'none';
+    LY.topicSelect($('topic-dd'), TOPICS, LY.topic, function (key) {
+      LY.topic = key;
     });
   }
 

@@ -841,6 +841,40 @@ body { overscroll-behavior-y: none; }
   border-top: 5px solid #a89880;
 }
 
+/* ---------- A13 话题下拉（自绘列表） ----------
+   为什么不用原生 <select>：原生下拉只能由「用户直接点 select 元素」打开，
+   脚本 sel.click() 打不开这个手势。项目曾用「显示隐藏 select + sel.click()」，
+   起卦页与解卦页点了完全没反应，change 不触发，LY.topic 永远停在「综合」，
+   等于所有卦都按综合运势推 —— 分类功能形同虚设。现在改成自绘列表。
+   结构由 app.js 的 LY.topicSelect 生成：
+     .dd        定位容器（label + menu）
+     .dd-label  可点的触发条，复用 .topic-sel 的外观，caret 顶到右边
+     .dd-menu   绝对定位的选项层
+     .dd-opt    单个选项，aria-selected 标当前项 */
+.dd { position: relative; flex: none; }
+.dd-label { min-width: 138px; justify-content: space-between; gap: 12px; }
+/* 「综合运势（看世应）」这类标签在 360px 小屏上会顶到 caret，长了就省略号 */
+.dd-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-menu {
+  position: absolute; z-index: 30;
+  left: 0; right: 0; top: calc(100% + 6px);
+  max-height: 252px; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #241d15; border: 1px solid #4a3e30; border-radius: 10px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.6);
+}
+/* hidden 属性靠 UA 的 display:none，但作者样式一旦给 display 就会被盖掉，显式兜住 */
+.dd-menu[hidden] { display: none; }
+.dd-opt {
+  padding: 11px 12px;
+  font-size: 13px; color: #d8c9b0;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(74,62,48,.5);
+}
+.dd-opt:last-child { border-bottom: none; }
+.dd-opt:hover { background: #2f2619; }
+.dd-opt[aria-selected="true"] { color: #e8c877; background: #33291a; }
+
 .ip-top { display: flex; align-items: center; gap: 14px; }
 .ip-verdict { text-align: center; flex: none; }
 .iv-word { font-size: 27px; font-weight: 600; letter-spacing: 3px; }
