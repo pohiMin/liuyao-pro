@@ -63,10 +63,6 @@
 
   function render(topic) {
     current = topic;
-    // 标签文案按当前 topic 重新取，切换类别后才不会显示上一项
-    for (var i = 0; i < TOPICS.length; i++) {
-      if (TOPICS[i].key === topic) curLabel = TOPICS[i].label;
-    }
     var result = E.fullDivine(st.results, st.date);
     var r = E.interpret(result, topic);
 
